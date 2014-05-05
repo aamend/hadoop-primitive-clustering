@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.aamend.hadoop</groupId>
+    <artifactId>mahout-sequence</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
+        <hadoop.core.version>2.0.0-mr1-cdh4.0.1</hadoop.core.version>
+        <mahout.version>0.7-cdh4.2.0</mahout.version>
+    </properties>
+
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>jdk.tools</groupId>
+                <artifactId>jdk.tools</artifactId>
+                <version>1.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.mahout</groupId>
+                <artifactId>mahout-core</artifactId>
+                <version>${mahout.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.uncommons.watchmaker</groupId>
+                        <artifactId>watchmaker-framework</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jfree</groupId>
+                        <artifactId>jfreechart</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.mahout</groupId>
+                <artifactId>mahout-math</artifactId>
+                <version>${mahout.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>jfree</groupId>
+                        <artifactId>jfreechart</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-core</artifactId>
+                <version>${hadoop.core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-common</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>${hadoop.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-daemon</groupId>
+                        <artifactId>commons-daemon</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit-dep</artifactId>
+                <version>4.10</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.apache.mahout</groupId>
+            <artifactId>mahout-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.mahout</groupId>
+            <artifactId>mahout-math</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.mrunit</groupId>
+            <classifier>hadoop2</classifier>
+            <artifactId>mrunit</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12.2</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <scm>
+        <connection>
+            scm:git:git@github.com:TagManCode/TagMan-Hadoop-Loggers.git
+        </connection>
+        <url>scm:git:git@github.com:TagManCode/TagMan-Hadoop-Loggers.git</url>
+        <developerConnection>
+            scm:git:git@github.com:TagManCode/TagMan-Hadoop-Loggers.git
+        </developerConnection>
+        <tag>loggers-1.0</tag>
+    </scm>
+
+</project>
