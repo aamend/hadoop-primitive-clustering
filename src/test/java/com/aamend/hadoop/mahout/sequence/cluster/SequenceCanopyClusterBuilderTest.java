@@ -28,7 +28,7 @@ public class SequenceCanopyClusterBuilderTest {
 
     private static Logger LOGGER = LoggerFactory.getLogger
             (SequenceCanopyClusterBuilderTest.class);
-    private List<Object[]> sequences = new ArrayList<Object[]>();
+    private List<int[]> sequences = new ArrayList<int[]>();
     private final Collection<SequenceCanopy> canopies = Lists.newArrayList();
     private SequenceCanopyClusterBuilder builder;
 
@@ -57,7 +57,7 @@ public class SequenceCanopyClusterBuilderTest {
                 list.add(Integer.parseInt(id));
             }
 
-            Object[] sequence = new Object[list.size()];
+            int[] sequence = new int[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 sequence[i] = list.get(i);
             }
@@ -69,7 +69,7 @@ public class SequenceCanopyClusterBuilderTest {
     @Test
     public void cluster() {
 
-        for (Object[] sequence : sequences) {
+        for (int[] sequence : sequences) {
             builder.addPointToCanopies(sequence, canopies);
         }
         LOGGER.info("{} canopies created", canopies.size());

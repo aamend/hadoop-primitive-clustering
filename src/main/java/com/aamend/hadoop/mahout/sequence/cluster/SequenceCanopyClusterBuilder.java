@@ -4,7 +4,9 @@ import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Author: antoine.amend@gmail.com
@@ -33,22 +35,27 @@ public class SequenceCanopyClusterBuilder {
                         "T2 resp. {}, {}", t1, t2);
     }
 
-    public boolean addPointToCanopies(Object[] point,
-                                      Collection<SequenceCanopy> canopies) {
+    public List<String> addPointToCanopies(int[] point,
+                                           Collection<SequenceCanopy> canopies) {
 
+        List<String> added = new ArrayList<String>(canopies.size());
         boolean stronglyBound = false;
         for (SequenceCanopy sequenceCanopy : canopies) {
             double dist = measure.distance(sequenceCanopy.getCenter(), point);
             if (dist < t1) {
                 sequenceCanopy.observe(point);
+                added.add(SequenceAbstractCluster
+                        .formatSequence(sequenceCanopy.getCenter()));
             }
             stronglyBound = stronglyBound || dist < t2;
         }
         if (!stronglyBound) {
             nextCanopyId++;
             canopies.add(new SequenceCanopy(point, nextCanopyId, measure));
+            added.add(SequenceAbstractCluster
+                    .formatSequence(point));
         }
-        return stronglyBound;
-    }
 
+        return added;
+    }
 }

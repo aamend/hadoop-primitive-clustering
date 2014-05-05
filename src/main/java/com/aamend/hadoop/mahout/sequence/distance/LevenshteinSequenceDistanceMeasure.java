@@ -16,7 +16,7 @@ public class LevenshteinSequenceDistanceMeasure implements SequenceDistanceMeasu
 
     private float maxLevDistance;
 
-    private double getNormalizedDistance(Object[] s, Object[] t,
+    private double getNormalizedDistance(int[] s, int[] t,
                                          int threshold) {
 
         if (s == null || t == null) {
@@ -45,7 +45,7 @@ public class LevenshteinSequenceDistanceMeasure implements SequenceDistanceMeasu
 
         if (n > m) {
             // swap the two strings to consume less memory
-            final Object[] tmp = s.clone();
+            final int[] tmp = s.clone();
             s = t;
             t = tmp;
             n = m;
@@ -68,7 +68,7 @@ public class LevenshteinSequenceDistanceMeasure implements SequenceDistanceMeasu
 
         // iterates through t
         for (int j = 1; j <= m; j++) {
-            final Object t_j = t[j - 1]; // jth character of t
+            final int t_j = t[j - 1]; // jth character of t
             d[0] = j;
 
             // compute stripe indices, constrain to array size
@@ -88,7 +88,7 @@ public class LevenshteinSequenceDistanceMeasure implements SequenceDistanceMeasu
 
             // iterates through [min, max] in s
             for (int i = min; i <= max; i++) {
-                if (s[i - 1].equals(t_j)) {
+                if (s[i - 1] == (t_j)) {
                     // diagonally left and up
                     d[i] = p[i - 1];
                 } else {
@@ -114,7 +114,7 @@ public class LevenshteinSequenceDistanceMeasure implements SequenceDistanceMeasu
     }
 
     @Override
-    public double distance(Object[] seq1, Object[] seq2) {
+    public double distance(int[] seq1, int[] seq2) {
         // Compute Levenshtein threshold
         int maxDistance = Math.max(seq1.length, seq2.length);
         int threshold = (int) Math.ceil(maxDistance * maxLevDistance);

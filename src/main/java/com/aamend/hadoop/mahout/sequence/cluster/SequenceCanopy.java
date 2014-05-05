@@ -10,7 +10,7 @@ import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasureCluster
 public class SequenceCanopy
         extends SequenceDistanceMeasureCluster {
 
-    public SequenceCanopy(Object[] center, int canopyId,
+    public SequenceCanopy(int[] center, int canopyId,
                           SequenceDistanceMeasure measure) {
         super(center, canopyId, measure);
         observe(center);

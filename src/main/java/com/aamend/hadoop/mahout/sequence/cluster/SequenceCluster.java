@@ -1,6 +1,7 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.io.SequenceModel;
+import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.mahout.common.parameters.Parametered;
 
@@ -8,7 +9,7 @@ import org.apache.mahout.common.parameters.Parametered;
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public interface SequenceCluster extends SequenceModel<ArrayPrimitiveWritable>,
+public interface SequenceCluster extends SequenceModel<SequenceWritable>,
         Parametered {
 
     // default directory for all clustered points
@@ -36,7 +37,7 @@ public interface SequenceCluster extends SequenceModel<ArrayPrimitiveWritable>,
      *
      * @return an Integer Array
      */
-    Object[] getCenter();
+    int[] getCenter();
 
     /**
      * Produce a custom, human-friendly, printable representation of the Cluster.

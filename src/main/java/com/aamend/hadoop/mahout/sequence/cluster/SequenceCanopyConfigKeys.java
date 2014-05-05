@@ -34,4 +34,19 @@ public final class SequenceCanopyConfigKeys {
         // Return new builder instance
         return new SequenceCanopyClusterBuilder(measure, t1, t2);
     }
+
+    public static SequenceDistanceMeasure configureSequenceDistanceMeasure(
+            Configuration conf) {
+
+        // Retrieve params fom configuration
+        float t1 = conf.getFloat(T1_KEY, 1.0f);
+        float t2 = conf.getFloat(T2_KEY, 0.8f);
+        SequenceDistanceMeasure measure = ClassUtils
+                .instantiateAs(conf.get(DISTANCE_MEASURE_KEY),
+                        SequenceDistanceMeasure.class);
+
+        // Configure distance measure
+        measure.configure(conf);
+        return measure;
+    }
 }

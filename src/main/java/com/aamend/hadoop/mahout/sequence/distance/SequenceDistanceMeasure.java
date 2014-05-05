@@ -4,6 +4,6 @@ import org.apache.mahout.common.parameters.Parametered;
 
 public interface SequenceDistanceMeasure extends Parametered {
 
-    double distance(Object[] seq1, Object[] seq2);
+    double distance(int[] seq1, int[] seq2);
 
 }

@@ -1,7 +1,7 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
+import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +17,12 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
 
     private int id;
     private long numObservations;
-    private Object[] center;
+    private int[] center;
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(SequenceAbstractCluster.class);
 
-    protected SequenceAbstractCluster(Object[] sequence, int id) {
+    protected SequenceAbstractCluster(int[] sequence, int id) {
         this.numObservations = 0;
         this.center = sequence;
         this.id = id;
@@ -32,7 +32,7 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     public void write(DataOutput out) throws IOException {
         out.writeInt(id);
         out.writeLong(numObservations);
-        ArrayPrimitiveWritable apw = new ArrayPrimitiveWritable(center);
+        SequenceWritable apw = new SequenceWritable(center);
         apw.write(out);
     }
 
@@ -40,9 +40,9 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     public void readFields(DataInput in) throws IOException {
         this.id = in.readInt();
         this.numObservations = in.readLong();
-        ArrayPrimitiveWritable awp = new ArrayPrimitiveWritable();
+        SequenceWritable awp = new SequenceWritable();
         awp.readFields(in);
-        center = (Object[]) awp.get();
+        center = awp.get();
     }
 
     @Override
@@ -51,8 +51,8 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     }
 
     @Override
-    public void observe(ArrayPrimitiveWritable x) {
-        observe((Object[]) x.get());
+    public void observe(SequenceWritable x) {
+        observe(x.get());
     }
 
     @Override
@@ -75,11 +75,11 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
         return numObservations;
     }
 
-    public Object[] getCenter() {
+    public int[] getCenter() {
         return center;
     }
 
-    public void observe(Object[] x) {
+    public void observe(int[] x) {
         numObservations++;
         if (center == null) {
             center = x.clone();
@@ -88,11 +88,11 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
 
     public abstract String getIdentifier();
 
-    public static String formatSequence(Object[] sequence) {
+    public static String formatSequence(int[] sequence) {
         StringBuilder buffer = new StringBuilder();
         buffer.append('[');
-        for (Object element : sequence) {
-            buffer.append(element.toString()).append(", ");
+        for (int element : sequence) {
+            buffer.append(element).append(", ");
         }
 
         if (buffer.length() > 1) {
