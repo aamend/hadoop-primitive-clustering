@@ -79,7 +79,7 @@ public class SequenceClustering {
         // Declare my Input / Output directory structure
         String inputDir = "/www/loggers/backup/tmdata";
         String uuid = UUID.randomUUID().toString().toUpperCase();
-        Path tmp1 = new Path("/tmp" + uuid + "_1");
+        Path tmp1 = new Path("/tmp/" + uuid + "_1");
         Path tmp2 = new Path("/tmp/" + uuid + "_2");
 
         // Prepare job
