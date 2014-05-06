@@ -120,9 +120,7 @@
         <connection>
             scm:git:git@github.com:aamend/mahout-sequence.git
         </connection>
-        <url>
-            scm:git:git@github.com:aamend/mahout-sequence.git
-        </url>
+        <url>https://github.com/aamend/mahout-sequence</url>
         <developerConnection>
             scm:git:git@github.com:aamend/mahout-sequence.git
         </developerConnection>
