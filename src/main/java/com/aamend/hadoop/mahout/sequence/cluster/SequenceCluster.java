@@ -1,14 +1,14 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.io.SequenceModel;
-import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 
 /**
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public interface SequenceCluster extends SequenceModel<SequenceWritable> {
+public interface SequenceCluster extends SequenceModel<ArrayPrimitiveWritable> {
 
     // default directory for all clustered points
     String CLUSTERED_POINTS_DIR = "clusteredPoints";

@@ -2,7 +2,7 @@ package com.aamend.hadoop.mahout.sequence.mapreduce;
 
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
 import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
@@ -12,13 +12,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CanopyCreateCombiner
+public class SequenceCanopyCreateCombiner
         extends
-        Reducer<Text, SequenceWritable, Text, SequenceWritable> {
+        Reducer<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
     private static final Text KEY = new Text("canopies");
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(CanopyCreateCombiner.class);
+            LoggerFactory.getLogger(SequenceCanopyCreateCombiner.class);
 
     private SequenceDistanceMeasure measure;
 
@@ -29,15 +29,15 @@ public class CanopyCreateCombiner
     }
 
     @Override
-    protected void reduce(Text key, Iterable<SequenceWritable> values,
+    protected void reduce(Text key, Iterable<ArrayPrimitiveWritable> values,
                           Context context)
             throws IOException, InterruptedException {
 
         // Try to find a center that could minimize all data points
         List<int[]> points = new ArrayList<int[]>();
         boolean first = true;
-        for (SequenceWritable value : values) {
-            points.add(value.get());
+        for (ArrayPrimitiveWritable value : values) {
+            points.add((int[]) value.get());
         }
 
         LOGGER.info("Minimizing center for {} data points, key = {}",
@@ -67,7 +67,7 @@ public class CanopyCreateCombiner
             }
         }
 
-        context.write(KEY, new SequenceWritable(points.get(minIdx)));
+        context.write(KEY, new ArrayPrimitiveWritable(points.get(minIdx)));
 
     }
 

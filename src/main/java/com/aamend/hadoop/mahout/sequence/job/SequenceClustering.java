@@ -2,16 +2,16 @@ package com.aamend.hadoop.mahout.sequence.job;
 
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCluster;
-import com.aamend.hadoop.mahout.sequence.distance.LevenshteinSequenceDistanceMeasure;
 import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
-import com.aamend.hadoop.mahout.sequence.mapreduce.CanopyCreateCombiner;
-import com.aamend.hadoop.mahout.sequence.mapreduce.CanopyCreateMapper;
-import com.aamend.hadoop.mahout.sequence.mapreduce.CanopyCreateReducer;
+import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateCombiner;
+import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateMapper;
+import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateReducer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
@@ -60,7 +60,7 @@ public class SequenceClustering {
         addJarToDistributedCache(SequenceClustering.class, conf);
 
         SequenceDistanceMeasure measure =
-                new LevenshteinSequenceDistanceMeasure();
+                new SequenceLevenshteinDistanceMeasure();
 
         conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
                 measure.getClass().getName());
@@ -75,18 +75,22 @@ public class SequenceClustering {
 
         // Prepare job iteration
         int reducers = REDUCERS;
-        int numIterations = (int) Math.floor(Math.log(reducers) / Math.log(2)) + 1;
-        float t1It = T1 / numIterations;
-        float t2It = T2 / numIterations;
+        int numIterations =
+                (int) Math.floor(Math.log(reducers) / Math.log(2)) + 1;
+        float t1It = T1 / (numIterations + 1);
+        float t2It = T2 / (numIterations + 1);
         float t1 = t1It;
         float t2 = t2It;
         int iteration = 0;
         Path sequences = new Path(inputDir);
         Path output = new Path(tmp, SequenceCluster.INITIAL_CLUSTERS_DIR);
 
-        while (reducers >= 1) {
+        boolean last = false;
+        while (reducers >= 0 && !last) {
 
             iteration++;
+            if (reducers == 0)
+                last = true;
 
             LOGGER.info("Job      : {}/{}", iteration, numIterations);
             LOGGER.info("T1       : {}", t1);
@@ -102,15 +106,15 @@ public class SequenceClustering {
 
             Job job = new Job(conf,
                     "Create clusters - " + iteration + "/" + numIterations);
-            job.setMapperClass(CanopyCreateMapper.class);
-            job.setCombinerClass(CanopyCreateCombiner.class);
-            job.setReducerClass(CanopyCreateReducer.class);
+            job.setMapperClass(SequenceCanopyCreateMapper.class);
+            job.setCombinerClass(SequenceCanopyCreateCombiner.class);
+            job.setReducerClass(SequenceCanopyCreateReducer.class);
             job.setJarByClass(SequenceClustering.class);
             job.setNumReduceTasks(reducers);
             job.setMapOutputKeyClass(Text.class);
-            job.setMapOutputValueClass(SequenceWritable.class);
+            job.setMapOutputValueClass(ArrayPrimitiveWritable.class);
             job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(SequenceWritable.class);
+            job.setOutputValueClass(ArrayPrimitiveWritable.class);
             job.setInputFormatClass(SequenceFileInputFormat.class);
             job.setOutputFormatClass(SequenceFileOutputFormat.class);
             SequenceFileInputFormat.addInputPath(job, sequences);
@@ -126,7 +130,12 @@ public class SequenceClustering {
 
             // Output of previous job will be input as next one
             sequences = output;
-            output = new Path(tmp, SequenceCluster.CLUSTERS_DIR + iteration);
+
+            String newDir = SequenceCluster.CLUSTERS_DIR + iteration;
+            if (reducers == 0) {
+                newDir += SequenceCluster.FINAL_ITERATION_SUFFIX;
+            }
+            output = new Path(tmp, newDir);
 
         }
 

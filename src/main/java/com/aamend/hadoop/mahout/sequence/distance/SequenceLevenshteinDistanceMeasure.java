@@ -9,7 +9,7 @@ import java.util.Arrays;
  * Author: antoine.amend@gmail.com
  * Date: 10/03/14
  */
-public class LevenshteinSequenceDistanceMeasure implements SequenceDistanceMeasure {
+public class SequenceLevenshteinDistanceMeasure implements SequenceDistanceMeasure {
 
     private float maxLevDistance;
 

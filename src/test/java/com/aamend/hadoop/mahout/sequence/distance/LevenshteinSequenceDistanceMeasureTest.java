@@ -20,8 +20,8 @@ public class LevenshteinSequenceDistanceMeasureTest {
 
     @Test
     public void testDistance() {
-        LevenshteinSequenceDistanceMeasure measure = new
-                LevenshteinSequenceDistanceMeasure();
+        SequenceLevenshteinDistanceMeasure measure = new
+                SequenceLevenshteinDistanceMeasure();
         measure.configure(new Configuration());
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -53,8 +53,8 @@ public class LevenshteinSequenceDistanceMeasureTest {
 
     @Test
     public void testDistanceThreshold() {
-        LevenshteinSequenceDistanceMeasure measure = new
-                LevenshteinSequenceDistanceMeasure();
+        SequenceLevenshteinDistanceMeasure measure = new
+                SequenceLevenshteinDistanceMeasure();
 
         Configuration conf = new Configuration();
         conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, 0.1f);

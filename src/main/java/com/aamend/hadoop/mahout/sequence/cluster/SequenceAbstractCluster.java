@@ -1,6 +1,6 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
-import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     public void write(DataOutput out) throws IOException {
         out.writeInt(id);
         out.writeLong(numObservations);
-        SequenceWritable apw = new SequenceWritable(center);
+        ArrayPrimitiveWritable apw = new ArrayPrimitiveWritable(center);
         apw.write(out);
     }
 
@@ -39,14 +39,14 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     public void readFields(DataInput in) throws IOException {
         this.id = in.readInt();
         this.numObservations = in.readLong();
-        SequenceWritable awp = new SequenceWritable();
+        ArrayPrimitiveWritable awp = new ArrayPrimitiveWritable();
         awp.readFields(in);
-        center = awp.get();
+        center = (int[]) awp.get();
     }
 
     @Override
-    public void observe(SequenceWritable x) {
-        observe(x.get());
+    public void observe(ArrayPrimitiveWritable x) {
+        observe((int[]) x.get());
     }
 
     @Override
