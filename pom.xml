@@ -26,42 +26,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.mahout</groupId>
-                <artifactId>mahout-core</artifactId>
-                <version>${mahout.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.uncommons.watchmaker</groupId>
-                        <artifactId>watchmaker-framework</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>jfree</groupId>
-                        <artifactId>jfreechart</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.mahout</groupId>
-                <artifactId>mahout-math</artifactId>
-                <version>${mahout.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>jfree</groupId>
-                        <artifactId>jfreechart</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-core</artifactId>
                 <version>${hadoop.core.version}</version>
@@ -154,13 +118,14 @@
 
     <scm>
         <connection>
-            scm:git:git@github.com:TagManCode/TagMan-Hadoop-Loggers.git
+            scm:git:git@github.com:aamend/mahout-sequence.git
         </connection>
-        <url>scm:git:git@github.com:TagManCode/TagMan-Hadoop-Loggers.git</url>
+        <url>
+            scm:git:git@github.com:aamend/mahout-sequence.git
+        </url>
         <developerConnection>
-            scm:git:git@github.com:TagManCode/TagMan-Hadoop-Loggers.git
+            scm:git:git@github.com:aamend/mahout-sequence.git
         </developerConnection>
-        <tag>loggers-1.0</tag>
     </scm>
 
 </project>

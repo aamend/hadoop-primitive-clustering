@@ -25,10 +25,11 @@ public class SequenceCanopyCreateReducer
     private Collection<SequenceCanopy> canopies = Lists.newArrayList();
 
     private static final Text KEY = new Text("canopies");
-    private static final String COUNTER = "data";
-    private static final String COUNTER_CANOPY = "canopies";
     private static final Logger LOGGER =
             LoggerFactory.getLogger(SequenceCanopyCreateReducer.class);
+
+    public static final String COUNTER = "data";
+    public static final String COUNTER_CANOPY = "canopies";
 
     @Override
     protected void setup(Context context)
