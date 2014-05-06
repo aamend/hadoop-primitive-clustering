@@ -22,10 +22,6 @@ public final class SequenceCanopyConfigKeys {
     public static SequenceDistanceMeasure configureSequenceDistanceMeasure(
             Configuration conf) throws IOException {
 
-        // Retrieve params fom configuration
-        float t1 = conf.getFloat(T1_KEY, 1.0f);
-        float t2 = conf.getFloat(T2_KEY, 0.8f);
-
         SequenceDistanceMeasure measure;
         try {
             Class<?> clazz = Class.forName(

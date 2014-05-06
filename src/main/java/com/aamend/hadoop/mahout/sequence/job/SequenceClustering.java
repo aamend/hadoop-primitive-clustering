@@ -4,9 +4,7 @@ import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCluster;
 import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
 import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateCombiner;
-import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateMapper;
-import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateReducer;
+import com.aamend.hadoop.mahout.sequence.mapreduce.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -14,12 +12,15 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -29,7 +30,10 @@ public class SequenceClustering {
 
     private static final float T1 = 0.33f;
     private static final float T2 = 0.3f;
-    private static final int REDUCERS = 14;
+    private static final int CLIENT_ID = 93;
+    private static final int REDUCERS = 28;
+    private static final int MIN_CAMPAIGNS = 6;
+    private static final String BLACKLIST = "15";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(
             SequenceClustering.class);
@@ -67,14 +71,41 @@ public class SequenceClustering {
         conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, T1);
         conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, T2);
         conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, T1);
+        conf.set(CanopyCmpVectorMapper.BLACKLIST_CAMPAIGNS_KEY, BLACKLIST);
+        conf.setInt(CanopyCmpVectorMapper.CLIENT_ID_KEY, CLIENT_ID);
+        conf.setInt(CanopyCmpVectorReducer.MIN_CMP_KEY, MIN_CAMPAIGNS);
+
 
         // Declare my Input / Output directory structure
-        String inputDir = "/user/antoine/sequences";
+        String inputDir = "/www/loggers/backup/tmdata";
         String uuid = UUID.randomUUID().toString().toUpperCase();
-        Path tmp = new Path("/tmp/" + uuid + "_foo");
+        Path tmp1 = new Path("/tmp" + uuid + "_1");
+        Path tmp2 = new Path("/tmp/" + uuid + "_2");
+
+        // Prepare job
+        Job arrayJob = new Job(conf, "Create Arrays");
+        arrayJob.setJarByClass(CanopyCmpVectorMapper.class);
+        arrayJob.setMapperClass(CanopyCmpVectorMapper.class);
+        arrayJob.setReducerClass(CanopyCmpVectorReducer.class);
+        arrayJob.setNumReduceTasks(REDUCERS);
+        arrayJob.setMapOutputKeyClass(Text.class);
+        arrayJob.setMapOutputValueClass(CampaignDateTupleWritable.class);
+        arrayJob.setOutputKeyClass(Text.class);
+        arrayJob.setOutputValueClass(ArrayPrimitiveWritable.class);
+        arrayJob.setInputFormatClass(TextInputFormat.class);
+        arrayJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+        FileInputFormat.addInputPath(arrayJob, new Path(inputDir));
+        SequenceFileOutputFormat.setOutputPath(arrayJob, tmp1);
+
+        // Submit job
+        if (!arrayJob.waitForCompletion(true)) {
+            throw new IOException("MapReduce execution failed, please check " +
+                    arrayJob.getTrackingURL());
+        }
+
 
         // Prepare job iteration
-        int reducers = REDUCERS;
+        int reducers = REDUCERS / 2;
         int numIterations =
                 (int) Math.floor(Math.log(reducers) / Math.log(2)) + 1;
         float t1It = T1 / (numIterations + 1);
@@ -82,8 +113,9 @@ public class SequenceClustering {
         float t1 = t1It;
         float t2 = t2It;
         int iteration = 0;
-        Path sequences = new Path(inputDir);
-        Path output = new Path(tmp, SequenceCluster.INITIAL_CLUSTERS_DIR);
+
+        Path sequences = tmp1;
+        Path output = new Path(tmp2, SequenceCluster.INITIAL_CLUSTERS_DIR);
 
         boolean last = false;
         while (reducers >= 0 && !last) {
@@ -104,22 +136,29 @@ public class SequenceClustering {
             conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, t2);
             conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, t1);
 
-            Job job = new Job(conf,
+            // Prepare job
+            Job canopyJob = new Job(conf,
                     "Create clusters - " + iteration + "/" + numIterations);
-            job.setMapperClass(SequenceCanopyCreateMapper.class);
-            job.setCombinerClass(SequenceCanopyCreateCombiner.class);
-            job.setReducerClass(SequenceCanopyCreateReducer.class);
-            job.setJarByClass(SequenceClustering.class);
-            job.setNumReduceTasks(reducers);
-            job.setMapOutputKeyClass(Text.class);
-            job.setMapOutputValueClass(ArrayPrimitiveWritable.class);
-            job.setOutputKeyClass(Text.class);
-            job.setOutputValueClass(ArrayPrimitiveWritable.class);
-            job.setInputFormatClass(SequenceFileInputFormat.class);
-            job.setOutputFormatClass(SequenceFileOutputFormat.class);
-            SequenceFileInputFormat.addInputPath(job, sequences);
-            SequenceFileOutputFormat.setOutputPath(job, output);
-            job.waitForCompletion(true);
+            canopyJob.setMapperClass(SequenceCanopyCreateMapper.class);
+            canopyJob.setCombinerClass(SequenceCanopyCreateCombiner.class);
+            canopyJob.setReducerClass(SequenceCanopyCreateReducer.class);
+            canopyJob.setJarByClass(SequenceClustering.class);
+            canopyJob.setNumReduceTasks(reducers);
+            canopyJob.setMapOutputKeyClass(Text.class);
+            canopyJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
+            canopyJob.setOutputKeyClass(Text.class);
+            canopyJob.setOutputValueClass(ArrayPrimitiveWritable.class);
+            canopyJob.setInputFormatClass(SequenceFileInputFormat.class);
+            canopyJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+            SequenceFileInputFormat.addInputPath(canopyJob, sequences);
+            SequenceFileOutputFormat.setOutputPath(canopyJob, output);
+
+            // Submit job
+            if (!canopyJob.waitForCompletion(true)) {
+                throw new IOException(
+                        "MapReduce execution failed, please check " +
+                                canopyJob.getTrackingURL());
+            }
 
             // Get 2 times less reducers at next step
             reducers = reducers / 2;
@@ -135,7 +174,7 @@ public class SequenceClustering {
             if (reducers == 0) {
                 newDir += SequenceCluster.FINAL_ITERATION_SUFFIX;
             }
-            output = new Path(tmp, newDir);
+            output = new Path(tmp2, newDir);
 
         }
 

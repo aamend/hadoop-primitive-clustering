@@ -44,6 +44,11 @@ public interface SequenceCluster extends SequenceModel<ArrayPrimitiveWritable> {
      */
     String asFormatString();
 
+    /**
+     * Configure sequence based on Hadoop configuration
+     *
+     * @param job
+     */
     void configure(Configuration job);
 
 }
