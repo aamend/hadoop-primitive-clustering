@@ -1,7 +1,6 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
-import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +42,6 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
         SequenceWritable awp = new SequenceWritable();
         awp.readFields(in);
         center = awp.get();
-    }
-
-    @Override
-    public void configure(Configuration job) {
-        // nothing to do
     }
 
     @Override

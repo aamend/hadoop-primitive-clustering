@@ -2,7 +2,8 @@ package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.mahout.common.ClassUtils;
+
+import java.io.IOException;
 
 /**
  * Author: antoine.amend@gmail.com
@@ -18,32 +19,26 @@ public final class SequenceCanopyConfigKeys {
     public static final String DISTANCE_MEASURE_KEY = "cluster.measure";
     public static final String MAX_DISTANCE_MEASURE = "cluster.max.measure";
 
-    public static SequenceCanopyClusterBuilder configureClusterBuilder(
-            Configuration conf) {
-
-        // Retrieve params fom configuration
-        float t1 = conf.getFloat(T1_KEY, 1.0f);
-        float t2 = conf.getFloat(T2_KEY, 0.8f);
-        SequenceDistanceMeasure measure = ClassUtils
-                .instantiateAs(conf.get(DISTANCE_MEASURE_KEY),
-                        SequenceDistanceMeasure.class);
-
-        // Configure distance measure
-        measure.configure(conf);
-
-        // Return new builder instance
-        return new SequenceCanopyClusterBuilder(measure, t1, t2);
-    }
-
     public static SequenceDistanceMeasure configureSequenceDistanceMeasure(
-            Configuration conf) {
+            Configuration conf) throws IOException {
 
         // Retrieve params fom configuration
         float t1 = conf.getFloat(T1_KEY, 1.0f);
         float t2 = conf.getFloat(T2_KEY, 0.8f);
-        SequenceDistanceMeasure measure = ClassUtils
-                .instantiateAs(conf.get(DISTANCE_MEASURE_KEY),
-                        SequenceDistanceMeasure.class);
+
+        SequenceDistanceMeasure measure;
+        try {
+            Class<?> clazz = Class.forName(
+                    conf.get(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY));
+            Object obj = clazz.newInstance();
+            measure = (SequenceDistanceMeasure) obj;
+        } catch (ClassNotFoundException e) {
+            throw new IOException(e);
+        } catch (InstantiationException e) {
+            throw new IOException(e);
+        } catch (IllegalAccessException e) {
+            throw new IOException(e);
+        }
 
         // Configure distance measure
         measure.configure(conf);

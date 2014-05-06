@@ -3,7 +3,6 @@ package com.aamend.hadoop.mahout.sequence.mapreduce;
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
 import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
 import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
@@ -24,7 +23,7 @@ public class CanopyCreateCombiner
     private SequenceDistanceMeasure measure;
 
     @Override
-    protected void setup(Context context) {
+    protected void setup(Context context) throws IOException {
         measure = SequenceCanopyConfigKeys
                 .configureSequenceDistanceMeasure(context.getConfiguration());
     }
@@ -40,6 +39,9 @@ public class CanopyCreateCombiner
         for (SequenceWritable value : values) {
             points.add(value.get());
         }
+
+        LOGGER.info("Minimizing center for {} data points, key = {}",
+                points.size(), key.toString());
 
         double[] averages = new double[points.size()];
         for (int i = 0; i < points.size(); i++) {
@@ -65,8 +67,7 @@ public class CanopyCreateCombiner
             }
         }
 
-        int[] center = points.get(minIdx);
-        context.write(KEY, new SequenceWritable(center));
+        context.write(KEY, new SequenceWritable(points.get(minIdx)));
 
     }
 

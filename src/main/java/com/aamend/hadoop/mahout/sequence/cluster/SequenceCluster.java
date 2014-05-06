@@ -2,15 +2,13 @@ package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.io.SequenceModel;
 import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
-import org.apache.mahout.common.parameters.Parametered;
+import org.apache.hadoop.conf.Configuration;
 
 /**
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public interface SequenceCluster extends SequenceModel<SequenceWritable>,
-        Parametered {
+public interface SequenceCluster extends SequenceModel<SequenceWritable> {
 
     // default directory for all clustered points
     String CLUSTERED_POINTS_DIR = "clusteredPoints";
@@ -45,5 +43,7 @@ public interface SequenceCluster extends SequenceModel<SequenceWritable>,
      * @return a String
      */
     String asFormatString();
+
+    void configure(Configuration job);
 
 }

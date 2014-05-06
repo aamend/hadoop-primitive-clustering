@@ -3,15 +3,10 @@ package com.aamend.hadoop.mahout.sequence.distance;
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceAbstractCluster;
 import com.aamend.hadoop.mahout.sequence.io.SequenceWritable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
-import org.apache.mahout.common.ClassUtils;
-import org.apache.mahout.common.parameters.Parameter;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Author: antoine.amend@gmail.com
@@ -27,15 +22,6 @@ public class SequenceDistanceMeasureCluster extends SequenceAbstractCluster {
         this.measure = measure;
     }
 
-    @Override public Collection<Parameter<?>> getParameters() {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public void createParameters(String prefix, Configuration jobConf) {
-        // Nothing to do
-    }
-
     @Override
     public void configure(Configuration job) {
         if (measure != null) {
@@ -46,8 +32,17 @@ public class SequenceDistanceMeasureCluster extends SequenceAbstractCluster {
     @Override
     public void readFields(DataInput in) throws IOException {
         String dm = in.readUTF();
-        this.measure =
-                ClassUtils.instantiateAs(dm, SequenceDistanceMeasure.class);
+        try {
+            Class<?> clazz = Class.forName(dm);
+            Object obj = clazz.newInstance();
+            measure = (SequenceDistanceMeasure) obj;
+        } catch (ClassNotFoundException e) {
+            throw new IOException(e);
+        } catch (InstantiationException e) {
+            throw new IOException(e);
+        } catch (IllegalAccessException e) {
+            throw new IOException(e);
+        }
         super.readFields(in);
     }
 

@@ -1,9 +1,10 @@
 package com.aamend.hadoop.mahout.sequence.distance;
 
-import org.apache.mahout.common.parameters.Parametered;
+import org.apache.hadoop.conf.Configuration;
 
-public interface SequenceDistanceMeasure extends Parametered {
+public interface SequenceDistanceMeasure {
 
     double distance(int[] seq1, int[] seq2);
+    void configure(Configuration conf);
 
 }
