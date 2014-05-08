@@ -6,7 +6,7 @@
     <groupId>com.aamend.hadoop</groupId>
     <artifactId>hadoop-cluster-sequence</artifactId>
     <name>Hadoop Cluster Sequence</name>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
     <inceptionYear>2014</inceptionYear>
