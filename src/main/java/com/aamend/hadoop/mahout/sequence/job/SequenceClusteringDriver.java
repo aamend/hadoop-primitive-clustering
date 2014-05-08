@@ -28,8 +28,12 @@ public class SequenceClusteringDriver {
             SequenceClusteringDriver.class);
 
     /**
-     * Build a directory of Canopy clusters from the input arguments and, if
-     * requested, cluster the input vectors using these clusters
+     * Build a directory of Canopy clusters from the input arguments.
+     * Create clusters using several Map-Reduce jobs (at least 2). At each
+     * iteration, the number of reducers is 2 times smaller (until reached 0)
+     * while clusters' size get slightly higher (until T1,
+     * T2). Last job is a Map-only job that merge created clusters into a
+     * single sequence file.
      *
      * @param conf     the Configuration
      * @param input    the Path to the directory containing input arrays
