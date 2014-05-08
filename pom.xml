@@ -37,7 +37,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
         <hadoop.core.version>2.0.0-mr1-cdh4.0.1</hadoop.core.version>
-        <mahout.version>0.7-cdh4.2.0</mahout.version>
     </properties>
 
 
@@ -148,11 +147,11 @@
 
      <scm>
         <connection>
-            scm:git:git@github.com:aamend/mahout-sequence.git
+            git@github.com:aamend/hadoop-cluster-sequence.git
         </connection>
-        <url>https://github.com/aamend/mahout-sequence</url>
+        <url>https://github.com/aamend/hadoop-cluster-sequence</url>
         <developerConnection>
-            scm:git:git@github.com:aamend/mahout-sequence.git
+            git@github.com:aamend/hadoop-cluster-sequence.git
         </developerConnection>
     </scm>
 
