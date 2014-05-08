@@ -7,7 +7,11 @@ import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateCombiner;
 import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateMapper;
 import com.aamend.hadoop.mahout.sequence.mapreduce.SequenceCanopyCreateReducer;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -27,25 +31,20 @@ public class SequenceClusteringDriver {
      * Build a directory of Canopy clusters from the input arguments and, if
      * requested, cluster the input vectors using these clusters
      *
-     * @param conf    the Configuration
-     * @param input   the Path to the directory containing input vectors
-     * @param output  the Path for all output directories
-     * @param measure the DistanceMeasure
-     * @param finalT1 the double T1 distance metric
-     * @param finalT2 the double T2 distance metric
+     * @param conf     the Configuration
+     * @param input    the Path to the directory containing input arrays
+     * @param output   the Path for all output directories
+     * @param reducers the number of reducers to use
+     * @param measure  the DistanceMeasure
+     * @param finalT1  the double T1 distance metric
+     * @param finalT2  the double T2 distance metric
+     * @return the number of created clusters
      */
     public static long buildClusters(Configuration conf, Path input,
                                      Path output, int reducers,
                                      SequenceDistanceMeasure measure,
                                      float finalT1, float finalT2)
             throws IOException, InterruptedException, ClassNotFoundException {
-
-
-        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
-                measure.getClass().getName());
-        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, finalT1);
-        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, finalT2);
-        conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, finalT1);
 
         // Prepare job iteration
         int numIterations =
@@ -76,6 +75,8 @@ public class SequenceClusteringDriver {
             LOGGER.info("Reducers : {}", reducers);
 
             // Add job specific configuration
+            conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+                    measure.getClass().getName());
             conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, t1);
             conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, t2);
             conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, t1);
@@ -130,8 +131,67 @@ public class SequenceClusteringDriver {
 
         }
 
+        LOGGER.info("{} clusters created", canopies);
         return canopies;
 
     }
+
+    /**
+     * Build a directory of Canopy clusters from the input arguments and, if
+     * requested, cluster the input vectors using these clusters
+     *
+     * @param conf    the Configuration
+     * @param input   the Path to the directory containing input arrays
+     * @param output  the Path for all output directories
+     * @param measure the DistanceMeasure
+     * @param finalT1 the double T1 distance metric
+     */
+    public static void clusterData(Configuration conf, Path input,
+                                   Path output,
+                                   SequenceDistanceMeasure measure,
+                                   float finalT1)
+            throws IOException {
+
+        // Retrieve cluster information
+        FileSystem hdfs = FileSystem.get(conf);
+        String finalDir = SequenceCluster.CLUSTERS_DIR + 0 +
+                SequenceCluster.FINAL_ITERATION_SUFFIX;
+        Path finalPath = new Path(output, finalDir);
+
+        // Make sure cluster directory exist
+        if (!hdfs.exists(finalPath))
+            throw new IOException(
+                    "Clusters directory [" + finalPath + "] does not exist");
+
+        // Retrieve cluster's files (in theory only one
+        FileStatus[] fss = hdfs.listStatus(finalPath, new PathFilter() {
+            @Override
+            public boolean accept(Path path) {
+                String name = path.getName();
+                return name.contains(SequenceCluster.FINAL_ITERATION_SUFFIX);
+            }
+        });
+
+        // Make sure cluster's files exist
+        if (fss.length == 0)
+            throw new IOException(
+                    "Clusters sequence files do not exist in directory [" +
+                            finalPath + "]");
+
+        // Add each cluster file (in theory only one) to hadoop distributed cache
+        for (FileStatus fs : fss) {
+            LOGGER.info("Adding cluster file [" + fs.getPath() +
+                    "] to distributed cache");
+            DistributedCache.addCacheFile(fs.getPath().toUri(), conf);
+        }
+
+        // Add job specific configuration
+        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+                measure.getClass().getName());
+        conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, finalT1);
+
+
+    }
+
 
 }
