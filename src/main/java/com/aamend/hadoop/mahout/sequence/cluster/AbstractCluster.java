@@ -12,15 +12,15 @@ import java.io.IOException;
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public abstract class SequenceAbstractCluster implements SequenceCluster {
+public abstract class AbstractCluster implements Cluster {
 
     private int id;
     private int[] center;
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(SequenceAbstractCluster.class);
+            LoggerFactory.getLogger(AbstractCluster.class);
 
-    protected SequenceAbstractCluster(int[] sequence, int id) {
+    protected AbstractCluster(int[] sequence, int id) {
         this.center = sequence;
         this.id = id;
     }

@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Created by antoine on 12/05/14.
  */
-public class SequenceClusterReducer extends
+public class ClusterDataReducer extends
         Reducer<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
     @Override

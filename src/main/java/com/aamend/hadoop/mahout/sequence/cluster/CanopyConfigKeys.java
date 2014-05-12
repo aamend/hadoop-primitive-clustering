@@ -1,7 +1,7 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.distance.LevenshteinDistanceMeasure;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
@@ -13,9 +13,9 @@ import java.io.IOException;
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public final class SequenceCanopyConfigKeys {
+public final class CanopyConfigKeys {
 
-    private SequenceCanopyConfigKeys() {
+    private CanopyConfigKeys() {
     }
 
     public static final String MIN_PDF = "min.cluster.pdf";
@@ -24,23 +24,23 @@ public final class SequenceCanopyConfigKeys {
     public static final String DISTANCE_MEASURE_KEY = "cluster.measure";
     public static final String MAX_DISTANCE_MEASURE = "cluster.max.measure";
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(SequenceDistanceMeasure.class);
+            LoggerFactory.getLogger(DistanceMeasure.class);
 
-    public static SequenceDistanceMeasure configureSequenceDistanceMeasure(
+    public static DistanceMeasure configureMeasure(
             Configuration conf) throws IOException {
 
-        SequenceDistanceMeasure measure;
+        DistanceMeasure measure;
         String className =
-                conf.get(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY);
+                conf.get(CanopyConfigKeys.DISTANCE_MEASURE_KEY);
         if (StringUtils.isEmpty(className)) {
             LOGGER.warn(
                     "Distance measure is empty, using Levenshtein distance");
-            className = SequenceLevenshteinDistanceMeasure.class.getName();
+            className = LevenshteinDistanceMeasure.class.getName();
         }
         try {
             Class<?> clazz = Class.forName(className);
             Object obj = clazz.newInstance();
-            measure = (SequenceDistanceMeasure) obj;
+            measure = (DistanceMeasure) obj;
         } catch (ClassNotFoundException e) {
             throw new IOException(e);
         } catch (InstantiationException e) {

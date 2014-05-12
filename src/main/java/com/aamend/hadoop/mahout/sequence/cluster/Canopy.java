@@ -1,17 +1,17 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasureCluster;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasureCluster;
 
 /**
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public class SequenceCanopy
-        extends SequenceDistanceMeasureCluster {
+public class Canopy
+        extends DistanceMeasureCluster {
 
-    public SequenceCanopy(int[] center, int canopyId,
-                          SequenceDistanceMeasure measure) {
+    public Canopy(int[] center, int canopyId,
+                  DistanceMeasure measure) {
         super(center, canopyId, measure);
         observe(center);
     }

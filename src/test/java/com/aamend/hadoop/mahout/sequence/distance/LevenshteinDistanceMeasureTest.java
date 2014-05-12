@@ -1,6 +1,6 @@
 package com.aamend.hadoop.mahout.sequence.distance;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Test;
@@ -15,17 +15,17 @@ import java.text.DecimalFormat;
  * Created by antoine on 05/05/14.
  */
 @RunWith(JUnit4.class)
-public class LevenshteinSequenceDistanceMeasureTest {
+public class LevenshteinDistanceMeasureTest {
 
     private static Logger LOGGER = LoggerFactory.getLogger
-            (LevenshteinSequenceDistanceMeasureTest.class);
+            (LevenshteinDistanceMeasureTest.class);
     private DecimalFormat df = new DecimalFormat("###.##");
 
     @Test
     public void testDistance() {
 
-        SequenceLevenshteinDistanceMeasure measure = new
-                SequenceLevenshteinDistanceMeasure();
+        LevenshteinDistanceMeasure measure = new
+                LevenshteinDistanceMeasure();
         measure.configure(new Configuration());
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -58,10 +58,10 @@ public class LevenshteinSequenceDistanceMeasureTest {
     @Test
     public void testDistanceThreshold() {
 
-        SequenceLevenshteinDistanceMeasure measure = new
-                SequenceLevenshteinDistanceMeasure();
+        LevenshteinDistanceMeasure measure = new
+                LevenshteinDistanceMeasure();
         Configuration conf = new Configuration();
-        conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, 0.18f);
+        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, 0.18f);
         measure.configure(conf);
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

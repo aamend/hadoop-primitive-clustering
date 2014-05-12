@@ -1,15 +1,11 @@
 package com.aamend.hadoop.mahout.sequence.mapreduce;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceAbstractCluster;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopy;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.cluster.Canopy;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
-import org.apache.hadoop.io.MD5Hash;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
@@ -19,21 +15,21 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class SequenceCanopyCreateMapper extends
+public class ClusterCreateMapper extends
         Mapper<Text, ArrayPrimitiveWritable, Text,
                 ArrayPrimitiveWritable> {
 
     private float t1;
     private float t2;
     private int nextCanopyId;
-    private SequenceDistanceMeasure measure;
-    private Collection<SequenceCanopy> canopies = Lists.newArrayList();
+    private DistanceMeasure measure;
+    private Collection<Canopy> canopies = Lists.newArrayList();
 
     private static final Text KEY = new Text();
     private static final String COUNTER = "data";
     private static final String COUNTER_CANOPY = "canopies";
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(SequenceCanopyCreateMapper.class);
+            LoggerFactory.getLogger(ClusterCreateMapper.class);
 
     @Override
     protected void setup(Context context)
@@ -41,14 +37,12 @@ public class SequenceCanopyCreateMapper extends
 
         // Retrieve params fom configuration
         Configuration conf = context.getConfiguration();
-        t1 = conf.getFloat(SequenceCanopyConfigKeys.T1_KEY, 1.0f);
-        t2 = conf.getFloat(SequenceCanopyConfigKeys.T2_KEY, 0.8f);
+        measure = CanopyConfigKeys.configureMeasure(conf);
+        t1 = conf.getFloat(CanopyConfigKeys.T1_KEY, 1.0f);
+        t2 = conf.getFloat(CanopyConfigKeys.T2_KEY, 0.8f);
 
         LOGGER.info("Configuring distance with T1, T2 = {}, {}", t1, t2);
 
-        // Configure distance measure
-        measure = SequenceCanopyConfigKeys
-                .configureSequenceDistanceMeasure(context.getConfiguration());
     }
 
     @Override
@@ -58,18 +52,15 @@ public class SequenceCanopyCreateMapper extends
 
         // Add this point to canopies
         int[] point = (int[]) value.get();
-        boolean newCanopy = addPointToCanopies(point, context);
-        if (newCanopy) {
-            context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
-        }
+        addPointToCanopies(point, context);
     }
 
-    public boolean addPointToCanopies(int[] point,
-                                      Context context)
+    public void addPointToCanopies(int[] point,
+                                   Context context)
             throws IOException, InterruptedException {
 
         boolean stronglyBound = false;
-        for (SequenceCanopy sequenceCanopy : canopies) {
+        for (Canopy sequenceCanopy : canopies) {
             double dist = measure.distance(sequenceCanopy.getCenter(), point);
             if (dist < t1) {
                 sequenceCanopy.observe(point);
@@ -81,11 +72,9 @@ public class SequenceCanopyCreateMapper extends
         }
         if (!stronglyBound) {
             nextCanopyId++;
-            canopies.add(new SequenceCanopy(point, nextCanopyId, measure));
+            canopies.add(new Canopy(point, nextCanopyId, measure));
             KEY.set(Arrays.toString(point));
             context.write(KEY, new ArrayPrimitiveWritable(point));
         }
-
-        return !stronglyBound;
     }
 }

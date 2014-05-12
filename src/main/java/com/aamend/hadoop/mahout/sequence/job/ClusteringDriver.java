@@ -1,8 +1,8 @@
 package com.aamend.hadoop.mahout.sequence.job;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCluster;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.cluster.Cluster;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
 import com.aamend.hadoop.mahout.sequence.mapreduce.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class SequenceClusteringDriver {
+public class ClusteringDriver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(
-            SequenceClusteringDriver.class);
+            ClusteringDriver.class);
 
     /**
      * Build a directory of Canopy clusters from the input arguments.
@@ -44,7 +44,7 @@ public class SequenceClusteringDriver {
      */
     public static long buildClusters(Configuration conf, Path input,
                                      Path output, int reducers,
-                                     SequenceDistanceMeasure measure,
+                                     DistanceMeasure measure,
                                      float finalT1, float finalT2)
             throws IOException, InterruptedException, ClassNotFoundException {
 
@@ -57,9 +57,10 @@ public class SequenceClusteringDriver {
         float t2 = t2It;
         int iteration = 0;
 
+        long canopies = 0;
         Path clustersInput = input;
         Path clustersOutput =
-                new Path(output, SequenceCluster.INITIAL_CLUSTERS_DIR);
+                new Path(output, Cluster.INITIAL_CLUSTERS_DIR);
 
         while (reducers >= 1) {
 
@@ -72,19 +73,18 @@ public class SequenceClusteringDriver {
             LOGGER.info("Reducers : {}", reducers);
 
             // Add job specific configuration
-            conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+            conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                     measure.getClass().getName());
-            conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, t1);
-            conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, t2);
-            conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, t1);
+            conf.setFloat(CanopyConfigKeys.T1_KEY, t1);
+            conf.setFloat(CanopyConfigKeys.T2_KEY, t2);
+            conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, t1);
 
             // Prepare job
             Job canopyJob = new Job(conf,
                     "Create clusters - " + iteration + "/" + numIterations);
-            canopyJob.setMapperClass(SequenceCanopyCreateMapper.class);
-            canopyJob.setCombinerClass(SequenceCanopyCreateCombiner.class);
-            canopyJob.setReducerClass(SequenceCanopyCreateReducer.class);
-            canopyJob.setJarByClass(SequenceClusteringDriver.class);
+            canopyJob.setMapperClass(ClusterCreateMapper.class);
+            canopyJob.setReducerClass(ClusterCreateReducer.class);
+            canopyJob.setJarByClass(ClusteringDriver.class);
             canopyJob.setNumReduceTasks(reducers);
             canopyJob.setMapOutputKeyClass(Text.class);
             canopyJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
@@ -102,6 +102,11 @@ public class SequenceClusteringDriver {
                                 canopyJob.getTrackingURL());
             }
 
+            canopies = canopyJob.getCounters()
+                    .findCounter(ClusterCreateReducer.COUNTER,
+                            ClusterCreateReducer.COUNTER_CANOPY)
+                    .getValue();
+
             // Get 2 times less reducers at next step
             reducers = reducers / 2;
 
@@ -110,51 +115,20 @@ public class SequenceClusteringDriver {
             t2 += t2It;
 
             // Output of previous job will be input as next one
-            String newDir = SequenceCluster.CLUSTERS_DIR + iteration;
+            String newDir;
+            if (reducers == 1) {
+                // Output of previous job will be input as next one
+                newDir = Cluster.CLUSTERS_DIR + 0 +
+                        Cluster.FINAL_ITERATION_SUFFIX;
+            } else {
+                // Output of previous job will be input as next one
+                newDir = Cluster.CLUSTERS_DIR + iteration;
+            }
+
             clustersInput = clustersOutput;
             clustersOutput = new Path(output, newDir);
 
         }
-
-        String newDir = SequenceCluster.CLUSTERS_DIR + 0 +
-                SequenceCluster.FINAL_ITERATION_SUFFIX;
-        clustersOutput = new Path(output, newDir);
-
-        iteration++;
-        LOGGER.info("Job      : {}/{}", iteration, numIterations);
-        LOGGER.info("T1       : {}", t1);
-        LOGGER.info("T2       : {}", t2);
-        LOGGER.info("Input    : {}", clustersInput.toString());
-        LOGGER.info("Output   : {}", clustersOutput.toString());
-        LOGGER.info("Reducers : 0");
-
-        // Prepare job
-        Job mergeJob = new Job(conf,
-                "Create clusters - " + iteration + "/" + numIterations);
-        mergeJob.setMapperClass(SequenceCanopyCreateMapper.class);
-        mergeJob.setCombinerClass(SequenceCanopyMergeCombiner.class);
-        mergeJob.setJarByClass(SequenceClusteringDriver.class);
-        mergeJob.setNumReduceTasks(0);
-        mergeJob.setMapOutputKeyClass(Text.class);
-        mergeJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
-        mergeJob.setOutputKeyClass(Text.class);
-        mergeJob.setOutputValueClass(SequenceCluster.class);
-        mergeJob.setInputFormatClass(SequenceFileInputFormat.class);
-        mergeJob.setOutputFormatClass(SequenceFileOutputFormat.class);
-        SequenceFileInputFormat.addInputPath(mergeJob, clustersInput);
-        SequenceFileOutputFormat.setOutputPath(mergeJob, clustersOutput);
-
-        // Submit job
-        if (!mergeJob.waitForCompletion(true)) {
-            throw new IOException(
-                    "MapReduce execution failed, please check " +
-                            mergeJob.getTrackingURL());
-        }
-
-        long canopies = mergeJob.getCounters()
-                .findCounter(SequenceCanopyCreateReducer.COUNTER,
-                        SequenceCanopyCreateReducer.COUNTER_CANOPY)
-                .getValue();
 
         LOGGER.info("{} clusters created, available in {}", canopies,
                 clustersOutput);
@@ -177,27 +151,27 @@ public class SequenceClusteringDriver {
      */
     public static void clusterData(Configuration conf, Path input,
                                    Path output,
-                                   SequenceDistanceMeasure measure,
+                                   DistanceMeasure measure,
                                    float finalT1, float minPdf, int reducers)
             throws IOException, ClassNotFoundException, InterruptedException {
 
         // Retrieve cluster information
-        FileSystem hdfs = FileSystem.get(conf);
-        String finalDir = SequenceCluster.CLUSTERS_DIR + 0 +
-                SequenceCluster.FINAL_ITERATION_SUFFIX;
+        FileSystem fs = FileSystem.get(conf);
+        String finalDir = Cluster.CLUSTERS_DIR + 0 +
+                Cluster.FINAL_ITERATION_SUFFIX;
         Path finalPath = new Path(output, finalDir);
 
         // Make sure cluster directory exist
-        if (!hdfs.exists(finalPath))
+        if (!fs.exists(finalPath))
             throw new IOException(
                     "Clusters directory [" + finalPath + "] does not exist");
 
         // Retrieve cluster's files (in theory only one
-        FileStatus[] fss = hdfs.listStatus(finalPath, new PathFilter() {
+        FileStatus[] fss = fs.listStatus(finalPath, new PathFilter() {
             @Override
             public boolean accept(Path path) {
                 String name = path.getName();
-                return name.contains(SequenceCluster.FINAL_ITERATION_SUFFIX);
+                return name.contains(Cluster.FINAL_ITERATION_SUFFIX);
             }
         });
 
@@ -208,23 +182,23 @@ public class SequenceClusteringDriver {
                             finalPath + "]");
 
         // Add each cluster file (in theory only one) to hadoop distributed cache
-        for (FileStatus fs : fss) {
-            LOGGER.info("Adding cluster file [" + fs.getPath() +
+        for (FileStatus fileStatus : fss) {
+            LOGGER.info("Adding cluster file [" + fileStatus.getPath() +
                     "] to distributed cache");
-            DistributedCache.addCacheFile(fs.getPath().toUri(), conf);
+            DistributedCache.addCacheFile(fileStatus.getPath().toUri(), conf);
         }
 
         // Add job specific configuration
-        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                 measure.getClass().getName());
-        conf.setFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE, finalT1);
-        conf.setFloat(SequenceCanopyConfigKeys.MIN_PDF, minPdf);
+        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, finalT1);
+        conf.setFloat(CanopyConfigKeys.MIN_PDF, minPdf);
 
         // Prepare job
         Job clusterJob = new Job(conf, "Cluster data");
-        clusterJob.setMapperClass(SequenceClusterMapper.class);
-        clusterJob.setReducerClass(SequenceClusterReducer.class);
-        clusterJob.setJarByClass(SequenceClusteringDriver.class);
+        clusterJob.setMapperClass(ClusterDataMapper.class);
+        clusterJob.setReducerClass(ClusterDataReducer.class);
+        clusterJob.setJarByClass(ClusteringDriver.class);
         clusterJob.setNumReduceTasks(reducers);
         clusterJob.setMapOutputKeyClass(Text.class);
         clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);

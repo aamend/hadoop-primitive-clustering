@@ -1,6 +1,6 @@
 package com.aamend.hadoop.mahout.sequence.distance;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceAbstractCluster;
+import com.aamend.hadoop.mahout.sequence.cluster.AbstractCluster;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 
@@ -12,12 +12,12 @@ import java.io.IOException;
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public class SequenceDistanceMeasureCluster extends SequenceAbstractCluster {
+public class DistanceMeasureCluster extends AbstractCluster {
 
-    private SequenceDistanceMeasure measure;
+    private DistanceMeasure measure;
 
-    public SequenceDistanceMeasureCluster(int[] point, int id,
-                                          SequenceDistanceMeasure measure) {
+    public DistanceMeasureCluster(int[] point, int id,
+                                  DistanceMeasure measure) {
         super(point, id);
         this.measure = measure;
     }
@@ -35,7 +35,7 @@ public class SequenceDistanceMeasureCluster extends SequenceAbstractCluster {
         try {
             Class<?> clazz = Class.forName(dm);
             Object obj = clazz.newInstance();
-            measure = (SequenceDistanceMeasure) obj;
+            measure = (DistanceMeasure) obj;
         } catch (ClassNotFoundException e) {
             throw new IOException(e);
         } catch (InstantiationException e) {
@@ -62,11 +62,11 @@ public class SequenceDistanceMeasureCluster extends SequenceAbstractCluster {
         return "DMC:" + getId();
     }
 
-    public SequenceDistanceMeasure getMeasure() {
+    public DistanceMeasure getMeasure() {
         return measure;
     }
 
-    public void setMeasure(SequenceDistanceMeasure measure) {
+    public void setMeasure(DistanceMeasure measure) {
         this.measure = measure;
     }
 

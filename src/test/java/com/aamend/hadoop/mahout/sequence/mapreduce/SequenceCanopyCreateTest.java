@@ -1,8 +1,8 @@
 package com.aamend.hadoop.mahout.sequence.mapreduce;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.distance.LevenshteinDistanceMeasure;
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
@@ -34,18 +34,15 @@ public class SequenceCanopyCreateTest {
     private
     MapReduceDriver<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable>
             mapReduceDriver;
-    private SequenceDistanceMeasure measure;
+    private DistanceMeasure measure;
 
     @Before
     public void setUp() throws IOException {
 
-        measure = new SequenceLevenshteinDistanceMeasure();
-        SequenceCanopyCreateMapper mapper = new SequenceCanopyCreateMapper();
-        SequenceCanopyCreateCombiner combiner =
-                new SequenceCanopyCreateCombiner();
-        SequenceCanopyCreateReducer reducer = new SequenceCanopyCreateReducer();
+        measure = new LevenshteinDistanceMeasure();
+        ClusterCreateMapper mapper = new ClusterCreateMapper();
+        ClusterCreateReducer reducer = new ClusterCreateReducer();
         mapReduceDriver = MapReduceDriver.newMapReduceDriver();
-        mapReduceDriver.setCombiner(combiner);
         mapReduceDriver.setMapper(mapper);
         mapReduceDriver.setReducer(reducer);
         mapReduceDriver.withAll(getInputList());
@@ -56,10 +53,10 @@ public class SequenceCanopyCreateTest {
     public void createCanopies() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                 measure.getClass().getName());
-        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, 0.1f);
-        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, 0.08f);
+        conf.setFloat(CanopyConfigKeys.T1_KEY, 0.1f);
+        conf.setFloat(CanopyConfigKeys.T2_KEY, 0.08f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =
@@ -81,10 +78,10 @@ public class SequenceCanopyCreateTest {
     public void createCanopiesLargerT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                 measure.getClass().getName());
-        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, 0.2f);
-        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, 0.1f);
+        conf.setFloat(CanopyConfigKeys.T1_KEY, 0.2f);
+        conf.setFloat(CanopyConfigKeys.T2_KEY, 0.1f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =
@@ -106,10 +103,10 @@ public class SequenceCanopyCreateTest {
     public void createCanopiesLargestT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                 measure.getClass().getName());
-        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, 1.0f);
-        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, 0.95f);
+        conf.setFloat(CanopyConfigKeys.T1_KEY, 1.0f);
+        conf.setFloat(CanopyConfigKeys.T2_KEY, 0.95f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =

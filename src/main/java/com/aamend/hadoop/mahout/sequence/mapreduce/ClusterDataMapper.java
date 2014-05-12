@@ -1,8 +1,9 @@
 package com.aamend.hadoop.mahout.sequence.mapreduce;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopy;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCluster;
+import com.aamend.hadoop.mahout.sequence.cluster.Canopy;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.cluster.Cluster;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
@@ -20,15 +21,16 @@ import java.util.List;
 /**
  * Created by antoine on 12/05/14.
  */
-public class SequenceClusterMapper extends
+public class ClusterDataMapper extends
         Mapper<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
     private static final Text KEY = new Text();
-    private List<SequenceCanopy> clusters;
+    private List<Cluster> clusters;
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(SequenceClusterMapper.class);
+            LoggerFactory.getLogger(ClusterDataMapper.class);
 
     private float minPdf;
+    private DistanceMeasure measure;
 
     public static final String COUNTER = "DATA";
     public static final String COUNTER_NON_CLUSTER = "non.clustered";
@@ -37,9 +39,10 @@ public class SequenceClusterMapper extends
     @Override
     protected void setup(Context context) throws IOException {
 
+        // Configure distance measure
         Configuration conf = context.getConfiguration();
-
-        minPdf = conf.getFloat(SequenceCanopyConfigKeys.MIN_PDF, 1.0f);
+        measure = CanopyConfigKeys.configureMeasure(conf);
+        minPdf = conf.getFloat(CanopyConfigKeys.MIN_PDF, 1.0f);
         clusters = Lists.newArrayList();
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
@@ -51,12 +54,16 @@ public class SequenceClusterMapper extends
                         SequenceFile.Reader.file(new Path(uri)));
                 WritableComparable key = (WritableComparable) ReflectionUtils
                         .newInstance(reader.getKeyClass(), conf);
-                SequenceCluster value =
-                        (SequenceCluster) ReflectionUtils
+                ArrayPrimitiveWritable value =
+                        (ArrayPrimitiveWritable) ReflectionUtils
                                 .newInstance(reader.getValueClass(), conf);
 
+                int i = 0;
                 while (reader.next(key, value)) {
-                    clusters.add((SequenceCanopy) value);
+                    i++;
+                    Cluster cluster = new Canopy((int[]) value.get(), i,
+                            measure);
+                    clusters.add(cluster);
                 }
 
                 IOUtils.closeStream(reader);
@@ -68,7 +75,7 @@ public class SequenceClusterMapper extends
                     "Could not find / load any canopy. Check distributed cache");
         }
 
-        LOGGER.info("Loaded {} canopies", clusters.size());
+        LOGGER.info("Loaded {} clusters", clusters.size());
     }
 
     @Override
@@ -78,7 +85,7 @@ public class SequenceClusterMapper extends
         // Get distance from that point to any cluster center
         double[] distances = new double[clusters.size()];
         for (int i = 0; i < clusters.size(); i++) {
-            SequenceCluster cluster = clusters.get(i);
+            Cluster cluster = clusters.get(i);
             distances[i] = cluster.pdf(value);
         }
 
@@ -99,7 +106,7 @@ public class SequenceClusterMapper extends
         }
 
         // Point has been added to that cluster
-        SequenceCanopy cluster = clusters.get(minIdx);
+        Canopy cluster = (Canopy) clusters.get(minIdx);
         context.getCounter(COUNTER, COUNTER_CLUSTER).increment(1L);
 
         KEY.set(cluster.getIdentifier());

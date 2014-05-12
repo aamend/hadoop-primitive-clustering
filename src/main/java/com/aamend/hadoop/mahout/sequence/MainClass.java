@@ -1,7 +1,7 @@
 package com.aamend.hadoop.mahout.sequence;
 
-import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.job.SequenceClusteringDriver;
+import com.aamend.hadoop.mahout.sequence.distance.LevenshteinDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.job.ClusteringDriver;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
@@ -21,14 +21,15 @@ public class MainClass {
     public void run()
             throws InterruptedException, IOException, ClassNotFoundException {
         Configuration conf = new Configuration();
-        SequenceClusteringDriver
-                .buildClusters(conf, new Path("sequences"), new Path("tmp"), 24,
-                        new SequenceLevenshteinDistanceMeasure(), 0.35f, 0.3f);
+        ClusteringDriver
+                .buildClusters(conf, new Path("sequences"), new Path("tmp"),
+                        12,
+                        new LevenshteinDistanceMeasure(), 0.35f, 0.3f);
 
-        SequenceClusteringDriver
+        ClusteringDriver
                 .clusterData(conf, new Path("sequences"), new Path("tmp"),
-                        new SequenceLevenshteinDistanceMeasure(), 0.35f, 0.6f,
-                        24);
+                        new LevenshteinDistanceMeasure(), 0.35f, 0.6f,
+                        12);
     }
 
 }

@@ -8,7 +8,7 @@ import org.apache.hadoop.io.ArrayPrimitiveWritable;
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public interface SequenceCluster extends SequenceModel<ArrayPrimitiveWritable> {
+public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
 
     // default directory for all clustered points
     String CLUSTERED_POINTS_DIR = "clusteredPoints";

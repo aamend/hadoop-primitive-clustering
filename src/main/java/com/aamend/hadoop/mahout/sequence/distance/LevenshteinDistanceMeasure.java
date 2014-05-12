@@ -1,6 +1,6 @@
 package com.aamend.hadoop.mahout.sequence.distance;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
 import org.apache.hadoop.conf.Configuration;
 
 import java.util.Arrays;
@@ -9,8 +9,8 @@ import java.util.Arrays;
  * Author: antoine.amend@gmail.com
  * Date: 10/03/14
  */
-public class SequenceLevenshteinDistanceMeasure
-        implements SequenceDistanceMeasure {
+public class LevenshteinDistanceMeasure
+        implements DistanceMeasure {
 
     private float maxLevDistance;
 
@@ -123,7 +123,7 @@ public class SequenceLevenshteinDistanceMeasure
 
     public void configure(Configuration config) {
         maxLevDistance =
-                config.getFloat(SequenceCanopyConfigKeys.MAX_DISTANCE_MEASURE,
+                config.getFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE,
                         1.0f);
     }
 }

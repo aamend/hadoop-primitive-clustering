@@ -1,9 +1,8 @@
 package com.aamend.hadoop.mahout.sequence.mapreduce;
 
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopy;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
-import com.aamend.hadoop.mahout.sequence.cluster.SequenceCluster;
-import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -14,24 +13,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SequenceCanopyMergeCombiner
+public class ClusterCreateReducer
         extends
-        Reducer<Text, ArrayPrimitiveWritable, Text, SequenceCluster> {
+        Reducer<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
-    private List<int[]> clustersCenters;
-    private static final Text KEY = new Text("dummy");
+    private static final Text KEY = new Text("canopies");
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ClusterCreateReducer.class);
     public static final String COUNTER = "data";
     public static final String COUNTER_CANOPY = "canopies";
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(SequenceCanopyMergeCombiner.class);
 
-    private SequenceDistanceMeasure measure;
+    private DistanceMeasure measure;
 
     @Override
     protected void setup(Context context) throws IOException {
-        clustersCenters = new ArrayList<int[]>();
-        measure = SequenceCanopyConfigKeys
-                .configureSequenceDistanceMeasure(context.getConfiguration());
+        Configuration conf = context.getConfiguration();
+        measure = CanopyConfigKeys.configureMeasure(conf);
     }
 
     @Override
@@ -45,9 +42,6 @@ public class SequenceCanopyMergeCombiner
             points.add((int[]) value.get());
         }
 
-        LOGGER.info("Minimizing center for {} data points in cluster {}",
-                points.size(), key.toString());
-
         double[] averages = new double[points.size()];
         for (int i = 0; i < points.size(); i++) {
             double average = 0.0d;
@@ -55,8 +49,7 @@ public class SequenceCanopyMergeCombiner
             // Compute distance to other points
             for (int j = 0; j < points.size(); j++) {
                 if (j != i) {
-                    average += measure.distance(points.get(i),
-                            points.get(j));
+                    average += measure.distance(points.get(i), points.get(j));
                 }
             }
             averages[i] = average / (points.size() - 1);
@@ -72,19 +65,9 @@ public class SequenceCanopyMergeCombiner
             }
         }
 
-        clustersCenters.add(points.get(minIdx));
         context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
-    }
+        context.write(KEY, new ArrayPrimitiveWritable(points.get(minIdx)));
 
-    @Override
-    protected void cleanup(Context context)
-            throws IOException, InterruptedException {
-        for (int i = 0; i < clustersCenters.size(); i++) {
-            SequenceCluster cluster =
-                    new SequenceCanopy(clustersCenters.get(i), i, measure);
-            context.write(KEY, cluster);
-        }
     }
-
 
 }
