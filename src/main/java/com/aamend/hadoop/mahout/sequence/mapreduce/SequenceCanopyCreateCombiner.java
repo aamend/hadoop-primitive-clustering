@@ -35,12 +35,11 @@ public class SequenceCanopyCreateCombiner
 
         // Try to find a center that could minimize all data points
         List<int[]> points = new ArrayList<int[]>();
-        boolean first = true;
         for (ArrayPrimitiveWritable value : values) {
             points.add((int[]) value.get());
         }
 
-        LOGGER.info("Minimizing center for {} data points, key = {}",
+        LOGGER.info("Minimizing center for {} data points in cluster {}",
                 points.size(), key.toString());
 
         double[] averages = new double[points.size()];

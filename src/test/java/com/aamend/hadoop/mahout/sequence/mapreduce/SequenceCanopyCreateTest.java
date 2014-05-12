@@ -1,0 +1,188 @@
+package com.aamend.hadoop.mahout.sequence.mapreduce;
+
+import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
+import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
+import junit.framework.Assert;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
+import org.apache.hadoop.mrunit.types.Pair;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * Author: antoine.amend@tagman.com
+ * Date: 13/12/13
+ */
+@RunWith(JUnit4.class)
+public class SequenceCanopyCreateTest {
+
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SequenceCanopyCreateTest.class);
+
+    private
+    MapReduceDriver<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable>
+            mapReduceDriver;
+    private SequenceDistanceMeasure measure;
+
+    @Before
+    public void setUp() throws IOException {
+
+        measure = new SequenceLevenshteinDistanceMeasure();
+        SequenceCanopyCreateMapper mapper = new SequenceCanopyCreateMapper();
+        SequenceCanopyCreateCombiner combiner =
+                new SequenceCanopyCreateCombiner();
+        SequenceCanopyCreateReducer reducer = new SequenceCanopyCreateReducer();
+        mapReduceDriver = MapReduceDriver.newMapReduceDriver();
+        mapReduceDriver.setCombiner(combiner);
+        mapReduceDriver.setMapper(mapper);
+        mapReduceDriver.setReducer(reducer);
+        mapReduceDriver.withAll(getInputList());
+
+    }
+
+    @Test
+    public void createCanopies() throws IOException {
+
+        Configuration conf = mapReduceDriver.getConfiguration();
+        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+                measure.getClass().getName());
+        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, 0.1f);
+        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, 0.08f);
+
+        Set<String> clusters = new HashSet<String>();
+        List<Pair<Text, ArrayPrimitiveWritable>> results =
+                mapReduceDriver.run();
+        for (Pair<Text, ArrayPrimitiveWritable> result : results) {
+            int[] ap = (int[]) result.getSecond().get();
+            String str = Arrays.toString(ap);
+            if (!clusters.contains(str)) {
+                clusters.add(str);
+                LOGGER.info("Cluster center : {}", str);
+            }
+        }
+        Assert.assertEquals("8 clusters should have been created", 8,
+                clusters.size());
+        LOGGER.info("{} clusters have been created", clusters.size());
+    }
+
+    @Test
+    public void createCanopiesLargerT1T2() throws IOException {
+
+        Configuration conf = mapReduceDriver.getConfiguration();
+        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+                measure.getClass().getName());
+        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, 0.2f);
+        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, 0.1f);
+
+        Set<String> clusters = new HashSet<String>();
+        List<Pair<Text, ArrayPrimitiveWritable>> results =
+                mapReduceDriver.run();
+        for (Pair<Text, ArrayPrimitiveWritable> result : results) {
+            int[] ap = (int[]) result.getSecond().get();
+            String str = Arrays.toString(ap);
+            if (!clusters.contains(str)) {
+                clusters.add(str);
+                LOGGER.info("Cluster center : {}", str);
+            }
+        }
+        Assert.assertEquals("4 cluster should have been created", 4,
+                clusters.size());
+        LOGGER.info("{} clusters have been created", clusters.size());
+    }
+
+    @Test
+    public void createCanopiesLargestT1T2() throws IOException {
+
+        Configuration conf = mapReduceDriver.getConfiguration();
+        conf.set(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY,
+                measure.getClass().getName());
+        conf.setFloat(SequenceCanopyConfigKeys.T1_KEY, 1.0f);
+        conf.setFloat(SequenceCanopyConfigKeys.T2_KEY, 0.95f);
+
+        Set<String> clusters = new HashSet<String>();
+        List<Pair<Text, ArrayPrimitiveWritable>> results =
+                mapReduceDriver.run();
+        for (Pair<Text, ArrayPrimitiveWritable> result : results) {
+            int[] ap = (int[]) result.getSecond().get();
+            String str = Arrays.toString(ap);
+            if (!clusters.contains(str)) {
+                clusters.add(str);
+                LOGGER.info("Cluster center : {}", str);
+            }
+        }
+        Assert.assertEquals("1 cluster should have been created", 1,
+                clusters.size());
+        LOGGER.info("{} clusters have been created", clusters.size());
+    }
+
+    private List<Pair<Text, ArrayPrimitiveWritable>> getInputList()
+            throws
+            FileNotFoundException {
+
+        List<Pair<Text, ArrayPrimitiveWritable>>
+                inputList =
+                new ArrayList<Pair<Text, ArrayPrimitiveWritable>>();
+        String inputUrl = getClass().getResource("canopies.input").getFile();
+        File inputFile = new File(inputUrl);
+        Scanner in = new Scanner(inputFile);
+
+        while (in.hasNext()) {
+            String line = in.nextLine();
+            int[] ap = new int[8];
+            int i = 0;
+            for (String str : line.split(",")) {
+                ap[i] = Integer.parseInt(str);
+                i++;
+            }
+
+            Pair<Text, ArrayPrimitiveWritable> inputPair =
+                    new Pair<Text, ArrayPrimitiveWritable>(
+                            new Text("dummy"),
+                            new ArrayPrimitiveWritable(ap));
+            inputList.add(inputPair);
+
+        }
+
+        return inputList;
+    }
+
+    private List<Pair<Text, ArrayPrimitiveWritable>> getOutputList() throws
+            FileNotFoundException {
+
+        List<Pair<Text, ArrayPrimitiveWritable>> outputList =
+                new ArrayList<Pair<Text, ArrayPrimitiveWritable>>();
+        String outputUrl = getClass().getResource("canopies.output").getFile();
+        File outputFile = new File(outputUrl);
+        Scanner out = new Scanner(outputFile);
+
+        while (out.hasNext()) {
+            String line = out.nextLine();
+            int[] ap = new int[4];
+            int i = 0;
+            for (String str : line.split(",")) {
+                ap[i] = Integer.parseInt(str);
+                i++;
+            }
+
+            Pair<Text, ArrayPrimitiveWritable> outputPair =
+                    new Pair<Text, ArrayPrimitiveWritable>(
+                            new Text("canopies"),
+                            new ArrayPrimitiveWritable(ap));
+            outputList.add(outputPair);
+        }
+
+        return outputList;
+    }
+}

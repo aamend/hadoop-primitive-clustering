@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class SequenceCanopyCreateReducer
@@ -40,22 +41,11 @@ public class SequenceCanopyCreateReducer
         t1 = conf.getFloat(SequenceCanopyConfigKeys.T1_KEY, 1.0f);
         t2 = conf.getFloat(SequenceCanopyConfigKeys.T2_KEY, 0.8f);
 
+        LOGGER.info("Configuring distance with T1, T2 = {}, {}", t1, t2);
+
         // Configure distance measure
-        try {
-            Class<?> clazz = Class.forName(
-                    conf.get(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY));
-            Object obj = clazz.newInstance();
-            measure = (SequenceDistanceMeasure) obj;
-        } catch (ClassNotFoundException e) {
-            throw new IOException(e);
-        } catch (InstantiationException e) {
-            throw new IOException(e);
-        } catch (IllegalAccessException e) {
-            throw new IOException(e);
-        }
-
-        measure.configure(conf);
-
+        measure = SequenceCanopyConfigKeys
+                .configureSequenceDistanceMeasure(context.getConfiguration());
     }
 
     @Override
@@ -65,14 +55,11 @@ public class SequenceCanopyCreateReducer
 
         for (ArrayPrimitiveWritable value : values) {
             int[] point = (int[]) value.get();
-            boolean newCanopy = addPointToCanopies(point, context);
-            if (newCanopy) {
-                context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
-            }
+            addPointToCanopies(point, context);
         }
     }
 
-    public boolean addPointToCanopies(int[] point,
+    public void addPointToCanopies(int[] point,
                                       Context context)
             throws IOException, InterruptedException {
 
@@ -90,8 +77,7 @@ public class SequenceCanopyCreateReducer
             nextCanopyId++;
             canopies.add(new SequenceCanopy(point, nextCanopyId, measure));
             context.write(KEY, new ArrayPrimitiveWritable(point));
+            context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
         }
-
-        return !stronglyBound;
     }
 }

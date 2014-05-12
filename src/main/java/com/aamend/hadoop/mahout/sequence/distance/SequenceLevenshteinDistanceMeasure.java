@@ -9,12 +9,13 @@ import java.util.Arrays;
  * Author: antoine.amend@gmail.com
  * Date: 10/03/14
  */
-public class SequenceLevenshteinDistanceMeasure implements SequenceDistanceMeasure {
+public class SequenceLevenshteinDistanceMeasure
+        implements SequenceDistanceMeasure {
 
     private float maxLevDistance;
 
     private double getNormalizedDistance(int[] s, int[] t,
-                                         int threshold) {
+                                         float threshold) {
 
         if (s == null || t == null) {
             throw new IllegalArgumentException("Array must not be null");
@@ -54,7 +55,7 @@ public class SequenceLevenshteinDistanceMeasure implements SequenceDistanceMeasu
         int _d[]; // placeholder to assist in swapping p and d
 
         // fill in starting table values
-        final int boundary = Math.min(n, threshold) + 1;
+        final int boundary = n > threshold ? (int) threshold + 1 : n + 1;
         for (int i = 0; i < boundary; i++) {
             p[i] = i;
         }
@@ -69,9 +70,10 @@ public class SequenceLevenshteinDistanceMeasure implements SequenceDistanceMeasu
             d[0] = j;
 
             // compute stripe indices, constrain to array size
-            final int min = Math.max(1, j - threshold);
-            final int max = (j > Integer.MAX_VALUE - threshold) ? n :
-                    Math.min(n, j + threshold);
+            final int min =
+                    j - threshold > 1 ? (int) Math.ceil(j - threshold) : 1;
+            final int max = j > Integer.MAX_VALUE - threshold ? n :
+                    n < j + threshold ? n : (int) Math.ceil(j + threshold);
 
             // the stripe may lead off of the table if s and t are of different sizes
             if (min > max) {
@@ -114,7 +116,7 @@ public class SequenceLevenshteinDistanceMeasure implements SequenceDistanceMeasu
     public double distance(int[] seq1, int[] seq2) {
         // Compute Levenshtein threshold
         int maxDistance = Math.max(seq1.length, seq2.length);
-        int threshold = (int) Math.ceil(maxDistance * maxLevDistance);
+        float threshold = maxDistance * maxLevDistance;
         // Compute normalized distance
         return getNormalizedDistance(seq1, seq2, threshold);
     }

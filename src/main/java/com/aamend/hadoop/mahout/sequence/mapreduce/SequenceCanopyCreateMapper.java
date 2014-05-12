@@ -4,7 +4,9 @@ import com.aamend.hadoop.mahout.sequence.cluster.SequenceAbstractCluster;
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopy;
 import com.aamend.hadoop.mahout.sequence.cluster.SequenceCanopyConfigKeys;
 import com.aamend.hadoop.mahout.sequence.distance.SequenceDistanceMeasure;
+import com.aamend.hadoop.mahout.sequence.distance.SequenceLevenshteinDistanceMeasure;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.MD5Hash;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class SequenceCanopyCreateMapper extends
@@ -41,22 +44,11 @@ public class SequenceCanopyCreateMapper extends
         t1 = conf.getFloat(SequenceCanopyConfigKeys.T1_KEY, 1.0f);
         t2 = conf.getFloat(SequenceCanopyConfigKeys.T2_KEY, 0.8f);
 
+        LOGGER.info("Configuring distance with T1, T2 = {}, {}", t1, t2);
+
         // Configure distance measure
-        try {
-            Class<?> clazz = Class.forName(
-                    conf.get(SequenceCanopyConfigKeys.DISTANCE_MEASURE_KEY));
-            Object obj = clazz.newInstance();
-            measure = (SequenceDistanceMeasure) obj;
-        } catch (ClassNotFoundException e) {
-            throw new IOException(e);
-        } catch (InstantiationException e) {
-            throw new IOException(e);
-        } catch (IllegalAccessException e) {
-            throw new IOException(e);
-        }
-
-        measure.configure(conf);
-
+        measure = SequenceCanopyConfigKeys
+                .configureSequenceDistanceMeasure(context.getConfiguration());
     }
 
     @Override
@@ -81,9 +73,7 @@ public class SequenceCanopyCreateMapper extends
             double dist = measure.distance(sequenceCanopy.getCenter(), point);
             if (dist < t1) {
                 sequenceCanopy.observe(point);
-                String key = MD5Hash.digest(SequenceAbstractCluster
-                        .formatSequence(sequenceCanopy.getCenter())).toString();
-                KEY.set(key);
+                KEY.set(Arrays.toString(point));
                 context.write(KEY,
                         new ArrayPrimitiveWritable(sequenceCanopy.getCenter()));
             }
@@ -92,9 +82,7 @@ public class SequenceCanopyCreateMapper extends
         if (!stronglyBound) {
             nextCanopyId++;
             canopies.add(new SequenceCanopy(point, nextCanopyId, measure));
-            String key = MD5Hash.digest(SequenceAbstractCluster
-                    .formatSequence(point)).toString();
-            KEY.set(key);
+            KEY.set(Arrays.toString(point));
             context.write(KEY, new ArrayPrimitiveWritable(point));
         }
 
