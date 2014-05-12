@@ -15,14 +15,12 @@ import java.io.IOException;
 public abstract class SequenceAbstractCluster implements SequenceCluster {
 
     private int id;
-    private long numObservations;
     private int[] center;
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(SequenceAbstractCluster.class);
 
     protected SequenceAbstractCluster(int[] sequence, int id) {
-        this.numObservations = 0;
         this.center = sequence;
         this.id = id;
     }
@@ -30,7 +28,6 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     @Override
     public void write(DataOutput out) throws IOException {
         out.writeInt(id);
-        out.writeLong(numObservations);
         ArrayPrimitiveWritable apw = new ArrayPrimitiveWritable(center);
         apw.write(out);
     }
@@ -38,7 +35,6 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     @Override
     public void readFields(DataInput in) throws IOException {
         this.id = in.readInt();
-        this.numObservations = in.readLong();
         ArrayPrimitiveWritable awp = new ArrayPrimitiveWritable();
         awp.readFields(in);
         center = (int[]) awp.get();
@@ -53,7 +49,7 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
     public String asFormatString() {
         StringBuilder buf = new StringBuilder(50);
         buf.append(getIdentifier());
-        buf.append("{n=").append(numObservations);
+        buf.append("{");
         if (getCenter() != null) {
             buf.append(" c=").append(formatSequence(getCenter()));
         }
@@ -65,16 +61,11 @@ public abstract class SequenceAbstractCluster implements SequenceCluster {
         return id;
     }
 
-    public long getNumObservations() {
-        return numObservations;
-    }
-
     public int[] getCenter() {
         return center;
     }
 
     public void observe(int[] x) {
-        numObservations++;
         if (center == null) {
             center = x.clone();
         }

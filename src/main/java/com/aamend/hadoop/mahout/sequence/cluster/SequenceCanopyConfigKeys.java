@@ -18,6 +18,7 @@ public final class SequenceCanopyConfigKeys {
     private SequenceCanopyConfigKeys() {
     }
 
+    public static final String MIN_PDF = "min.cluster.pdf";
     public static final String T1_KEY = "cluster.t1";
     public static final String T2_KEY = "cluster.t2";
     public static final String DISTANCE_MEASURE_KEY = "cluster.measure";

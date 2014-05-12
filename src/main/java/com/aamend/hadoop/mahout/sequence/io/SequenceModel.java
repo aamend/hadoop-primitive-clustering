@@ -23,12 +23,4 @@ public interface SequenceModel<O> extends Writable {
      */
     void observe(O x);
 
-    /**
-     * Return the number of observations that this model has seen since its
-     * parameters were last computed
-     *
-     * @return a long
-     */
-    long getNumObservations();
-
 }
