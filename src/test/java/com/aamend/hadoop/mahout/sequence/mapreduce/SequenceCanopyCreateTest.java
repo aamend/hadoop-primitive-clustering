@@ -157,32 +157,4 @@ public class SequenceCanopyCreateTest {
 
         return inputList;
     }
-
-    private List<Pair<Text, ArrayPrimitiveWritable>> getOutputList() throws
-            FileNotFoundException {
-
-        List<Pair<Text, ArrayPrimitiveWritable>> outputList =
-                new ArrayList<Pair<Text, ArrayPrimitiveWritable>>();
-        String outputUrl = getClass().getResource("canopies.output").getFile();
-        File outputFile = new File(outputUrl);
-        Scanner out = new Scanner(outputFile);
-
-        while (out.hasNext()) {
-            String line = out.nextLine();
-            int[] ap = new int[4];
-            int i = 0;
-            for (String str : line.split(",")) {
-                ap[i] = Integer.parseInt(str);
-                i++;
-            }
-
-            Pair<Text, ArrayPrimitiveWritable> outputPair =
-                    new Pair<Text, ArrayPrimitiveWritable>(
-                            new Text("canopies"),
-                            new ArrayPrimitiveWritable(ap));
-            outputList.add(outputPair);
-        }
-
-        return outputList;
-    }
 }
