@@ -47,7 +47,7 @@ public class ClusterDataMapper extends
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
 
-            if (uri.getPath().contains("part")) {
+            if (uri.getPath().contains(Cluster.FINAL_ITERATION_SUFFIX)) {
                 LOGGER.info("Loading file [{}] from distributed cache", uri);
                 // Read canopies
                 SequenceFile.Reader reader = new SequenceFile.Reader(conf,

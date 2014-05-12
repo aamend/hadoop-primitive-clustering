@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class ClusteringDriver {
+public class ClusterDriver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(
-            ClusteringDriver.class);
+            ClusterDriver.class);
 
     /**
      * Build a directory of Canopy clusters from the input arguments.
@@ -50,21 +50,21 @@ public class ClusteringDriver {
 
         // Prepare job iteration
         int numIterations =
-                (int) Math.floor(Math.log(reducers) / Math.log(2)) + 2;
-        float t1It = finalT1 / (numIterations + 1);
-        float t2It = finalT2 / (numIterations + 1);
+                (int) Math.floor(Math.log(reducers) / Math.log(2)) + 1;
+        float t1It = finalT1 / numIterations;
+        float t2It = finalT2 / numIterations;
         float t1 = t1It;
         float t2 = t2It;
         int iteration = 0;
-
         long canopies = 0;
+
         Path clustersInput = input;
-        Path clustersOutput =
-                new Path(output, Cluster.INITIAL_CLUSTERS_DIR);
+        Path clustersOutput = new Path(output, Cluster.INITIAL_CLUSTERS_DIR);
 
         while (reducers >= 1) {
 
             iteration++;
+
             LOGGER.info("Job      : {}/{}", iteration, numIterations);
             LOGGER.info("T1       : {}", t1);
             LOGGER.info("T2       : {}", t2);
@@ -84,7 +84,7 @@ public class ClusteringDriver {
                     "Create clusters - " + iteration + "/" + numIterations);
             canopyJob.setMapperClass(ClusterCreateMapper.class);
             canopyJob.setReducerClass(ClusterCreateReducer.class);
-            canopyJob.setJarByClass(ClusteringDriver.class);
+            canopyJob.setJarByClass(ClusterDriver.class);
             canopyJob.setNumReduceTasks(reducers);
             canopyJob.setMapOutputKeyClass(Text.class);
             canopyJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
@@ -171,7 +171,7 @@ public class ClusteringDriver {
             @Override
             public boolean accept(Path path) {
                 String name = path.getName();
-                return name.contains(Cluster.FINAL_ITERATION_SUFFIX);
+                return name.contains("part");
             }
         });
 
@@ -198,7 +198,7 @@ public class ClusteringDriver {
         Job clusterJob = new Job(conf, "Cluster data");
         clusterJob.setMapperClass(ClusterDataMapper.class);
         clusterJob.setReducerClass(ClusterDataReducer.class);
-        clusterJob.setJarByClass(ClusteringDriver.class);
+        clusterJob.setJarByClass(ClusterDriver.class);
         clusterJob.setNumReduceTasks(reducers);
         clusterJob.setMapOutputKeyClass(Text.class);
         clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
