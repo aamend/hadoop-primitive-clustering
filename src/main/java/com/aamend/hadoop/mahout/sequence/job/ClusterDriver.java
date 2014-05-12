@@ -159,15 +159,17 @@ public class ClusterDriver {
         FileSystem fs = FileSystem.get(conf);
         String finalDir = Cluster.CLUSTERS_DIR + 0 +
                 Cluster.FINAL_ITERATION_SUFFIX;
-        Path finalPath = new Path(output, finalDir);
+        Path finalClusterPath = new Path(output, finalDir);
+        Path finalDataPath = new Path(output, Cluster.CLUSTERED_POINTS_DIR);
 
         // Make sure cluster directory exist
-        if (!fs.exists(finalPath))
+        if (!fs.exists(finalClusterPath))
             throw new IOException(
-                    "Clusters directory [" + finalPath + "] does not exist");
+                    "Clusters directory [" + finalClusterPath +
+                            "] does not exist");
 
         // Retrieve cluster's files (in theory only one
-        FileStatus[] fss = fs.listStatus(finalPath, new PathFilter() {
+        FileStatus[] fss = fs.listStatus(finalClusterPath, new PathFilter() {
             @Override
             public boolean accept(Path path) {
                 String name = path.getName();
@@ -179,7 +181,7 @@ public class ClusterDriver {
         if (fss.length == 0)
             throw new IOException(
                     "Clusters sequence files do not exist in directory [" +
-                            finalPath + "]");
+                            finalClusterPath + "]");
 
         // Add each cluster file (in theory only one) to hadoop distributed cache
         for (FileStatus fileStatus : fss) {
@@ -207,7 +209,7 @@ public class ClusterDriver {
         clusterJob.setInputFormatClass(SequenceFileInputFormat.class);
         clusterJob.setOutputFormatClass(SequenceFileOutputFormat.class);
         SequenceFileInputFormat.addInputPath(clusterJob, input);
-        SequenceFileOutputFormat.setOutputPath(clusterJob, finalPath);
+        SequenceFileOutputFormat.setOutputPath(clusterJob, finalDataPath);
 
         // Submit job
         if (!clusterJob.waitForCompletion(true)) {
@@ -216,7 +218,7 @@ public class ClusterDriver {
                             clusterJob.getTrackingURL());
         }
 
-        LOGGER.info("Clustered points available on {}", finalPath);
+        LOGGER.info("Clustered points available on {}", finalClusterPath);
 
     }
 

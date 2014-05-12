@@ -23,13 +23,13 @@ public class MainClass {
         Configuration conf = new Configuration();
         ClusterDriver
                 .buildClusters(conf, new Path("sequences"), new Path("tmp"),
-                        12,
+                        28,
                         new LevenshteinDistanceMeasure(), 0.35f, 0.3f);
 
         ClusterDriver
                 .clusterData(conf, new Path("sequences"), new Path("tmp"),
                         new LevenshteinDistanceMeasure(), 0.35f, 0.6f,
-                        12);
+                        28);
     }
 
 }
