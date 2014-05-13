@@ -9,13 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Created by antoine on 12/05/14.
  */
 public class ClusterDataReducer extends
-        Reducer<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
+        Reducer<Text, ArrayPrimitiveWritable, Text, Text> {
 
     private int minObservations;
     private static final Logger LOGGER =
@@ -59,7 +60,7 @@ public class ClusterDataReducer extends
         for (ArrayPrimitiveWritable value : list) {
             context.getCounter(ClusterDataMapper.COUNTER,
                     ClusterDataMapper.COUNTER_CLUSTERED).increment(1L);
-            context.write(key, value);
+            context.write(key, new Text(Arrays.toString((int[]) value.get())));
         }
     }
 }

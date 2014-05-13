@@ -213,7 +213,7 @@ public class ClusterDriver {
         clusterJob.setMapOutputKeyClass(Text.class);
         clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
         clusterJob.setOutputKeyClass(Text.class);
-        clusterJob.setOutputValueClass(ArrayPrimitiveWritable.class);
+        clusterJob.setOutputValueClass(Text.class);
         clusterJob.setInputFormatClass(SequenceFileInputFormat.class);
         clusterJob.setOutputFormatClass(TextOutputFormat.class);
         SequenceFileInputFormat.addInputPath(clusterJob, input);
