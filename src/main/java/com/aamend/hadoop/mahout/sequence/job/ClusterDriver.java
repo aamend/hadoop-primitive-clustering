@@ -183,7 +183,7 @@ public class ClusterDriver {
             }
         });
 
-        // Make sure cluster's files exist
+        // Make sure cluster's file exists
         if (fss.length == 0)
             throw new IOException(
                     "Clusters sequence files do not exist in directory [" +
