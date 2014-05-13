@@ -17,7 +17,9 @@ import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +45,12 @@ public class ClusterDriver {
      * @param measure  the DistanceMeasure
      * @param finalT1  the double T1 distance metric
      * @param finalT2  the double T2 distance metric
-     * @param cf       the minimum number of users per cluster
      * @return the number of created clusters
      */
     public static long buildClusters(Configuration conf, Path input,
                                      Path output, int reducers,
                                      DistanceMeasure measure,
-                                     float finalT1, float finalT2, int cf)
+                                     float finalT1, float finalT2)
             throws IOException, InterruptedException, ClassNotFoundException {
 
         // Prepare job iteration
@@ -78,9 +79,6 @@ public class ClusterDriver {
             LOGGER.info("Reducers : {}", reducers);
 
             // Add job specific configuration
-            boolean last = remaining == 0;
-            conf.setBoolean(CanopyConfigKeys.LAST_IT_KEY, last);
-            conf.setInt(CanopyConfigKeys.CF_KEY, cf);
             conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                     measure.getClass().getName());
             conf.setFloat(CanopyConfigKeys.T1_KEY, t1);
@@ -153,14 +151,16 @@ public class ClusterDriver {
      * @param input    the Path to the directory containing input arrays
      * @param output   the Path for all output directories
      * @param measure  the DistanceMeasure
-     * @param finalT1  the double T1 distance metric
+     * @param finalT1  the double T1 distance metric used for clustering
      * @param minPdf   the minimum probability to belong to a cluster
+     * @param minObs   the minimum number of observations per cluster
      * @param reducers the number of reducers to use
      */
     public static void clusterData(Configuration conf, Path input,
                                    Path output,
                                    DistanceMeasure measure,
-                                   float finalT1, float minPdf, int reducers)
+                                   float finalT1, float minPdf, int minObs,
+                                   int reducers)
             throws IOException, ClassNotFoundException, InterruptedException {
 
         // Retrieve cluster information
@@ -215,9 +215,9 @@ public class ClusterDriver {
         clusterJob.setOutputKeyClass(Text.class);
         clusterJob.setOutputValueClass(ArrayPrimitiveWritable.class);
         clusterJob.setInputFormatClass(SequenceFileInputFormat.class);
-        clusterJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+        clusterJob.setOutputFormatClass(TextOutputFormat.class);
         SequenceFileInputFormat.addInputPath(clusterJob, input);
-        SequenceFileOutputFormat.setOutputPath(clusterJob, finalDataPath);
+        FileOutputFormat.setOutputPath(clusterJob, finalDataPath);
 
         // Submit job
         if (!clusterJob.waitForCompletion(true)) {

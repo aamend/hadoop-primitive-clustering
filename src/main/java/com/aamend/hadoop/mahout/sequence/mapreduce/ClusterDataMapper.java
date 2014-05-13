@@ -33,8 +33,9 @@ public class ClusterDataMapper extends
     private DistanceMeasure measure;
 
     public static final String COUNTER = "DATA";
-    public static final String COUNTER_NON_CLUSTER = "non.clustered";
-    public static final String COUNTER_CLUSTER = "clustered";
+    public static final String COUNTER_NON_CLUSTERED = "non.clustered";
+    public static final String COUNTER_CLUSTERED = "clustered";
+    public static final String COUNTER_REJECTED_CLUSTER = "rejected.clusters";
 
     @Override
     protected void setup(Context context) throws IOException {
@@ -83,32 +84,30 @@ public class ClusterDataMapper extends
             throws IOException, InterruptedException {
 
         // Get distance from that point to any cluster center
-        double[] distances = new double[clusters.size()];
+        double[] pdf = new double[clusters.size()];
         for (int i = 0; i < clusters.size(); i++) {
             Cluster cluster = clusters.get(i);
-            distances[i] = cluster.pdf(value);
+            pdf[i] = cluster.pdf(value);
         }
 
         // Get the cluster with smallest distance to that point
-        double min = Double.MAX_VALUE;
-        int minIdx = 0;
-        for (int i = 0; i < clusters.size(); i++) {
-            if (distances[i] < min) {
-                min = distances[i];
-                minIdx = i;
+        double max = pdf[0];
+        int maxIdx = 0;
+        for (int i = 1; i < pdf.length; i++) {
+            if (pdf[i] > max) {
+                max = pdf[i];
+                maxIdx = i;
             }
         }
 
-        if (min >= minPdf) {
+        if (max < minPdf) {
             // Point could not be added to any cluster
-            context.getCounter(COUNTER, COUNTER_NON_CLUSTER).increment(1L);
+            context.getCounter(COUNTER, COUNTER_NON_CLUSTERED).increment(1L);
             return;
         }
 
         // Point has been added to that cluster
-        Canopy cluster = (Canopy) clusters.get(minIdx);
-        context.getCounter(COUNTER, COUNTER_CLUSTER).increment(1L);
-
+        Canopy cluster = (Canopy) clusters.get(maxIdx);
         KEY.set(cluster.getIdentifier());
         context.write(KEY, value);
 
