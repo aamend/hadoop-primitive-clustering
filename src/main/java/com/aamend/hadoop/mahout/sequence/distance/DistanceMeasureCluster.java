@@ -54,7 +54,8 @@ public class DistanceMeasureCluster extends AbstractCluster {
 
     @Override
     public double pdf(ArrayPrimitiveWritable apw) {
-        return 1 / (1 + measure.distance((int[]) apw.get(), getCenter()));
+        // Similarity
+        return 1.0d - measure.distance((int[]) apw.get(), getCenter());
     }
 
     @Override

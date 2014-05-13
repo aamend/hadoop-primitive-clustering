@@ -29,7 +29,6 @@ public class ClusterDataMapper extends
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ClusterDataMapper.class);
 
-    private float minPdf;
     private DistanceMeasure measure;
 
     public static final String COUNTER = "DATA";
@@ -43,7 +42,6 @@ public class ClusterDataMapper extends
         // Configure distance measure
         Configuration conf = context.getConfiguration();
         measure = CanopyConfigKeys.configureMeasure(conf);
-        minPdf = conf.getFloat(CanopyConfigKeys.MIN_PDF, 1.0f);
         clusters = Lists.newArrayList();
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
@@ -91,23 +89,23 @@ public class ClusterDataMapper extends
         }
 
         // Get the cluster with smallest distance to that point
-        double max = pdf[0];
-        int maxIdx = 0;
+        double maxSimilarity = pdf[0];
+        int maxSimilarityId = 0;
         for (int i = 1; i < pdf.length; i++) {
-            if (pdf[i] > max) {
-                max = pdf[i];
-                maxIdx = i;
+            if (pdf[i] > maxSimilarity) {
+                maxSimilarity = pdf[i];
+                maxSimilarityId = i;
             }
         }
 
-        if (max < minPdf) {
+        if (maxSimilarity == 0.0d) {
             // Point could not be added to any cluster
             context.getCounter(COUNTER, COUNTER_NON_CLUSTERED).increment(1L);
             return;
         }
 
         // Point has been added to that cluster
-        Canopy cluster = (Canopy) clusters.get(maxIdx);
+        Canopy cluster = (Canopy) clusters.get(maxSimilarityId);
         KEY.set(cluster.getIdentifier());
         context.write(KEY, value);
 

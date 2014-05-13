@@ -53,7 +53,7 @@ public class SequenceCanopyCreateTest {
     public void createCanopies() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_KEY,
                 measure.getClass().getName());
         conf.setFloat(CanopyConfigKeys.T1_KEY, 0.1f);
         conf.setFloat(CanopyConfigKeys.T2_KEY, 0.08f);
@@ -78,7 +78,7 @@ public class SequenceCanopyCreateTest {
     public void createCanopiesLargerT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_KEY,
                 measure.getClass().getName());
         conf.setFloat(CanopyConfigKeys.T1_KEY, 0.25f);
         conf.setFloat(CanopyConfigKeys.T2_KEY, 0.15f);
@@ -103,7 +103,7 @@ public class SequenceCanopyCreateTest {
     public void createCanopiesLargestT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
+        conf.set(CanopyConfigKeys.DISTANCE_KEY,
                 measure.getClass().getName());
         conf.setFloat(CanopyConfigKeys.T1_KEY, 1.0f);
         conf.setFloat(CanopyConfigKeys.T2_KEY, 0.95f);

@@ -18,11 +18,10 @@ public final class CanopyConfigKeys {
     private CanopyConfigKeys() {
     }
 
-    public static final String MIN_PDF = "min.cluster.pdf";
     public static final String MIN_OBS = "min.cluster.observations";
     public static final String T1_KEY = "cluster.t1";
     public static final String T2_KEY = "cluster.t2";
-    public static final String DISTANCE_MEASURE_KEY = "cluster.measure";
+    public static final String DISTANCE_KEY = "cluster.measure";
     public static final String MAX_DISTANCE_MEASURE = "cluster.max.measure";
     private static final Logger LOGGER =
             LoggerFactory.getLogger(DistanceMeasure.class);
@@ -32,7 +31,7 @@ public final class CanopyConfigKeys {
 
         DistanceMeasure measure;
         String className =
-                conf.get(CanopyConfigKeys.DISTANCE_MEASURE_KEY);
+                conf.get(CanopyConfigKeys.DISTANCE_KEY);
         if (StringUtils.isEmpty(className)) {
             LOGGER.warn(
                     "Distance measure is empty, using Levenshtein distance");

@@ -69,7 +69,6 @@ public class ClusterDriver {
         while (reducers >= 1) {
 
             iteration++;
-            int remaining = numIterations - iteration;
 
             LOGGER.info("Job      : {}/{}", iteration, numIterations);
             LOGGER.info("T1       : {}", t1);
@@ -79,7 +78,7 @@ public class ClusterDriver {
             LOGGER.info("Reducers : {}", reducers);
 
             // Add job specific configuration
-            conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
+            conf.set(CanopyConfigKeys.DISTANCE_KEY,
                     measure.getClass().getName());
             conf.setFloat(CanopyConfigKeys.T1_KEY, t1);
             conf.setFloat(CanopyConfigKeys.T2_KEY, t2);
@@ -152,14 +151,13 @@ public class ClusterDriver {
      * @param output   the Path for all output directories
      * @param measure  the DistanceMeasure
      * @param finalT1  the double T1 distance metric used for clustering
-     * @param minPdf   the minimum probability to belong to a cluster
      * @param minObs   the minimum number of observations per cluster
      * @param reducers the number of reducers to use
      */
     public static void clusterData(Configuration conf, Path input,
                                    Path output,
                                    DistanceMeasure measure,
-                                   float finalT1, float minPdf, int minObs,
+                                   float finalT1, int minObs,
                                    int reducers)
             throws IOException, ClassNotFoundException, InterruptedException {
 
@@ -199,10 +197,9 @@ public class ClusterDriver {
         }
 
         // Add job specific configuration
-        conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
-                measure.getClass().getName());
+        conf.set(CanopyConfigKeys.DISTANCE_KEY, measure.getClass().getName());
         conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, finalT1);
-        conf.setFloat(CanopyConfigKeys.MIN_PDF, minPdf);
+        conf.setInt(CanopyConfigKeys.MIN_OBS, minObs);
 
         // Prepare job
         Job clusterJob = new Job(conf, "Cluster data");

@@ -1,6 +1,7 @@
 package com.aamend.hadoop.mahout.sequence.mapreduce;
 
 import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -26,8 +27,8 @@ public class ClusterDataReducer extends
     protected void setup(
             Context context)
             throws IOException, InterruptedException {
-        minObservations =
-                context.getConfiguration().getInt(CanopyConfigKeys.MIN_OBS, 10);
+        Configuration conf = context.getConfiguration();
+        minObservations = conf.getInt(CanopyConfigKeys.MIN_OBS, 1);
     }
 
     @Override
