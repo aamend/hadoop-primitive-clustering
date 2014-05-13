@@ -21,6 +21,8 @@ public final class CanopyConfigKeys {
     public static final String MIN_PDF = "min.cluster.pdf";
     public static final String T1_KEY = "cluster.t1";
     public static final String T2_KEY = "cluster.t2";
+    public static final String CF_KEY = "cluster.cf";
+    public static final String LAST_IT_KEY = "iteration.last";
     public static final String DISTANCE_MEASURE_KEY = "cluster.measure";
     public static final String MAX_DISTANCE_MEASURE = "cluster.max.measure";
     private static final Logger LOGGER =

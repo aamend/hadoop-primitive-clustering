@@ -26,8 +26,6 @@ public class ClusterCreateMapper extends
     private Collection<Canopy> canopies = Lists.newArrayList();
 
     private static final Text KEY = new Text();
-    private static final String COUNTER = "data";
-    private static final String COUNTER_CANOPY = "canopies";
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ClusterCreateMapper.class);
 
@@ -60,20 +58,20 @@ public class ClusterCreateMapper extends
             throws IOException, InterruptedException {
 
         boolean stronglyBound = false;
-        for (Canopy sequenceCanopy : canopies) {
-            double dist = measure.distance(sequenceCanopy.getCenter(), point);
+        for (Canopy canopy : canopies) {
+            double dist = measure.distance(canopy.getCenter(), point);
             if (dist < t1) {
-                sequenceCanopy.observe(point);
-                KEY.set(Arrays.toString(point));
-                context.write(KEY,
-                        new ArrayPrimitiveWritable(sequenceCanopy.getCenter()));
+                canopy.observe(point);
+                KEY.set(Arrays.toString(canopy.getCenter()));
+                context.write(KEY, new ArrayPrimitiveWritable(point));
             }
             stronglyBound = stronglyBound || dist < t2;
         }
         if (!stronglyBound) {
             nextCanopyId++;
-            canopies.add(new Canopy(point, nextCanopyId, measure));
-            KEY.set(Arrays.toString(point));
+            Canopy canopy = new Canopy(point, nextCanopyId, measure);
+            canopies.add(canopy);
+            KEY.set(Arrays.toString(canopy.getCenter()));
             context.write(KEY, new ArrayPrimitiveWritable(point));
         }
     }

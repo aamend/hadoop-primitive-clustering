@@ -24,7 +24,7 @@ public class MainClass {
         ClusterDriver
                 .buildClusters(conf, new Path("sequences"), new Path("tmp"),
                         28,
-                        new LevenshteinDistanceMeasure(), 0.35f, 0.3f);
+                        new LevenshteinDistanceMeasure(), 0.35f, 0.3f, 10);
 
         ClusterDriver
                 .clusterData(conf, new Path("sequences"), new Path("tmp"),

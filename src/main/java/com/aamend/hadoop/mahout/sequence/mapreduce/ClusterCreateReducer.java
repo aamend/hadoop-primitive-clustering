@@ -23,12 +23,16 @@ public class ClusterCreateReducer
     public static final String COUNTER = "data";
     public static final String COUNTER_CANOPY = "canopies";
 
+    private boolean lastIteration;
+    private int clusterFilter;
     private DistanceMeasure measure;
 
     @Override
     protected void setup(Context context) throws IOException {
         Configuration conf = context.getConfiguration();
         measure = CanopyConfigKeys.configureMeasure(conf);
+        clusterFilter = conf.getInt(CanopyConfigKeys.CF_KEY, 10);
+        lastIteration = conf.getBoolean(CanopyConfigKeys.LAST_IT_KEY, false);
     }
 
     @Override
@@ -41,6 +45,17 @@ public class ClusterCreateReducer
         for (ArrayPrimitiveWritable value : values) {
             points.add((int[]) value.get());
         }
+
+        if (lastIteration) {
+            if (points.size() < clusterFilter) {
+                LOGGER.warn(
+                        "Cluster {} rejected - not enough data points (<{})",
+                        key.toString(), clusterFilter);
+            }
+        }
+
+        LOGGER.info("Minimizing distance across {} data points in cluster {}",
+                points.size(), key.toString());
 
         double[] averages = new double[points.size()];
         for (int i = 0; i < points.size(); i++) {

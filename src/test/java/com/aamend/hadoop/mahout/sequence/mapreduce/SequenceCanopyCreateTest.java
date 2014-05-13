@@ -80,8 +80,8 @@ public class SequenceCanopyCreateTest {
         Configuration conf = mapReduceDriver.getConfiguration();
         conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                 measure.getClass().getName());
-        conf.setFloat(CanopyConfigKeys.T1_KEY, 0.2f);
-        conf.setFloat(CanopyConfigKeys.T2_KEY, 0.1f);
+        conf.setFloat(CanopyConfigKeys.T1_KEY, 0.25f);
+        conf.setFloat(CanopyConfigKeys.T2_KEY, 0.15f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =

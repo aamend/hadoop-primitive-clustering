@@ -3,7 +3,10 @@ package com.aamend.hadoop.mahout.sequence.job;
 import com.aamend.hadoop.mahout.sequence.cluster.CanopyConfigKeys;
 import com.aamend.hadoop.mahout.sequence.cluster.Cluster;
 import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.mapreduce.*;
+import com.aamend.hadoop.mahout.sequence.mapreduce.ClusterCreateMapper;
+import com.aamend.hadoop.mahout.sequence.mapreduce.ClusterCreateReducer;
+import com.aamend.hadoop.mahout.sequence.mapreduce.ClusterDataMapper;
+import com.aamend.hadoop.mahout.sequence.mapreduce.ClusterDataReducer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
@@ -40,12 +43,13 @@ public class ClusterDriver {
      * @param measure  the DistanceMeasure
      * @param finalT1  the double T1 distance metric
      * @param finalT2  the double T2 distance metric
+     * @param cf       the minimum number of users per cluster
      * @return the number of created clusters
      */
     public static long buildClusters(Configuration conf, Path input,
                                      Path output, int reducers,
                                      DistanceMeasure measure,
-                                     float finalT1, float finalT2)
+                                     float finalT1, float finalT2, int cf)
             throws IOException, InterruptedException, ClassNotFoundException {
 
         // Prepare job iteration
@@ -64,6 +68,7 @@ public class ClusterDriver {
         while (reducers >= 1) {
 
             iteration++;
+            int remaining = numIterations - iteration;
 
             LOGGER.info("Job      : {}/{}", iteration, numIterations);
             LOGGER.info("T1       : {}", t1);
@@ -73,6 +78,9 @@ public class ClusterDriver {
             LOGGER.info("Reducers : {}", reducers);
 
             // Add job specific configuration
+            boolean last = remaining == 0;
+            conf.setBoolean(CanopyConfigKeys.LAST_IT_KEY, last);
+            conf.setInt(CanopyConfigKeys.CF_KEY, cf);
             conf.set(CanopyConfigKeys.DISTANCE_MEASURE_KEY,
                     measure.getClass().getName());
             conf.setFloat(CanopyConfigKeys.T1_KEY, t1);
