@@ -202,7 +202,7 @@ public class ClusterDriver {
         conf.setInt(CanopyConfigKeys.MIN_OBS, minObs);
 
         // Prepare job
-        Job clusterJob = new Job(conf, "Cluster data");
+        Job clusterJob = new Job(conf, "Clustering data");
         clusterJob.setMapperClass(ClusterDataMapper.class);
         clusterJob.setReducerClass(ClusterDataReducer.class);
         clusterJob.setJarByClass(ClusterDriver.class);
