@@ -4,8 +4,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.aamend.hadoop</groupId>
-    <artifactId>hadoop-cluster-sequence</artifactId>
-    <name>Hadoop Cluster Sequence</name>
+    <artifactId>hadoop-clustering-array</artifactId>
+    <name>Hadoop Cluster Array</name>
     <version>1.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
