@@ -26,10 +26,10 @@ import java.util.*;
  * Date: 13/12/13
  */
 @RunWith(JUnit4.class)
-public class SequenceCanopyCreateTest {
+public class CanopyCreateTest {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(SequenceCanopyCreateTest.class);
+            LoggerFactory.getLogger(CanopyCreateTest.class);
 
     private
     MapReduceDriver<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable>
