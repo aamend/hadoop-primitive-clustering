@@ -14,9 +14,7 @@ import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,8 +123,8 @@ public class ClusterDriver {
             LOGGER.info("Reducers : {}", reducers);
             LOGGER.info("Input    : {}", itIPath.toString());
             LOGGER.info("Output   : {}", itOPath.toString());
-            LOGGER.info("T1       : {}", itT1);
-            LOGGER.info("T2       : {}", itT2);
+            LOGGER.info("T1       : {}", round(itT1));
+            LOGGER.info("T2       : {}", round(itT2));
             LOGGER.info("************************************");
 
             // Prepare job
@@ -155,12 +153,21 @@ public class ClusterDriver {
                     ClusterCreateReducer.COUNTER,
                     ClusterCreateReducer.COUNTER_CANOPY).getValue();
 
+            // Make sure we have at least one canopy created
+            if (canopies == 0) {
+                LOGGER.error(
+                        "Could not build any canopy. " +
+                                "Please check your input arrays " +
+                                "and / or your {T1,T2} parameters");
+                return 0;
+            }
+
             // Get 2 times less reducers at next step
             reducers = reducers / 2;
 
             // Get slightly larger clusters at next step
-            itT1 = round(itT1 + itT1Increase);
-            itT2 = round(itT2 + itT2Increase);
+            itT1 = itT1 + itT1Increase;
+            itT2 = itT2 + itT2Increase;
 
             // Output of previous job will be input as next one
             itIPath = itOPath;
@@ -169,11 +176,13 @@ public class ClusterDriver {
         }
 
         // Make sure we have at least one canopy created
-        if (canopies == 0)
-            throw new IOException(
+        if (canopies == 0) {
+            LOGGER.error(
                     "Could not build any canopy. " +
                             "Please check your input arrays " +
                             "and / or your {T1,T2} parameters");
+            return 0;
+        }
 
         // Retrieve cluster's files (in theory only one)
         FileStatus[] fss = fileSystem.listStatus(itIPath, new PathFilter() {
@@ -346,12 +355,11 @@ public class ClusterDriver {
         clusterJob.setMapOutputKeyClass(Text.class);
         clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
         clusterJob.setOutputKeyClass(Text.class);
-        // TODO: Change to ArrayPrimitiveWritable and Sequence file
-        clusterJob.setOutputValueClass(Text.class);
+        clusterJob.setOutputValueClass(ArrayPrimitiveWritable.class);
         clusterJob.setInputFormatClass(SequenceFileInputFormat.class);
-        clusterJob.setOutputFormatClass(TextOutputFormat.class);
+        clusterJob.setOutputFormatClass(SequenceFileOutputFormat.class);
         SequenceFileInputFormat.addInputPath(clusterJob, input);
-        FileOutputFormat.setOutputPath(clusterJob, dataPath);
+        SequenceFileOutputFormat.setOutputPath(clusterJob, dataPath);
 
         // Submit job
         if (!clusterJob.waitForCompletion(true))
@@ -387,7 +395,7 @@ public class ClusterDriver {
     }
 
     private static float round(float val) {
-        DecimalFormat df = new DecimalFormat("###.##");
+        DecimalFormat df = new DecimalFormat("#.##");
         return Float.valueOf(df.format(val));
     }
 
