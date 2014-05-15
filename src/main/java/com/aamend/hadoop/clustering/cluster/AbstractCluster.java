@@ -1,4 +1,4 @@
-package com.aamend.hadoop.clustering.array.cluster;
+package com.aamend.hadoop.clustering.cluster;
 
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.slf4j.Logger;

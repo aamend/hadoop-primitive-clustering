@@ -1,6 +1,6 @@
-package com.aamend.hadoop.clustering.array.cluster;
+package com.aamend.hadoop.clustering.cluster;
 
-import com.aamend.hadoop.clustering.array.distance.DistanceMeasure;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 

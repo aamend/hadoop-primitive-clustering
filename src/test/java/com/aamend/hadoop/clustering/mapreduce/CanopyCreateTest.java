@@ -1,8 +1,8 @@
-package com.aamend.hadoop.clustering.array.mapreduce;
+package com.aamend.hadoop.clustering.mapreduce;
 
-import com.aamend.hadoop.clustering.array.cluster.CanopyConfigKeys;
-import com.aamend.hadoop.clustering.array.distance.DistanceMeasure;
-import com.aamend.hadoop.clustering.array.distance.LevenshteinDistanceMeasure;
+import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
+import com.aamend.hadoop.clustering.distance.LevenshteinDistanceMeasure;
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;

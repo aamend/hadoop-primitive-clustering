@@ -1,4 +1,4 @@
-package com.aamend.hadoop.clustering.array.io;
+package com.aamend.hadoop.clustering.io;
 
 import org.apache.hadoop.io.Writable;
 

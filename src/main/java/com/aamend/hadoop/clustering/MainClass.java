@@ -1,8 +1,8 @@
-package com.aamend.hadoop.clustering.array;
+package com.aamend.hadoop.clustering;
 
-import com.aamend.hadoop.clustering.array.distance.DistanceMeasure;
-import com.aamend.hadoop.clustering.array.distance.LevenshteinDistanceMeasure;
-import com.aamend.hadoop.clustering.array.job.ClusterDriver;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
+import com.aamend.hadoop.clustering.distance.LevenshteinDistanceMeasure;
+import com.aamend.hadoop.clustering.job.ClusterDriver;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;

@@ -1,9 +1,9 @@
-package com.aamend.hadoop.clustering.array.job;
+package com.aamend.hadoop.clustering.job;
 
-import com.aamend.hadoop.clustering.array.cluster.CanopyConfigKeys;
-import com.aamend.hadoop.clustering.array.cluster.Cluster;
-import com.aamend.hadoop.clustering.array.distance.DistanceMeasure;
-import com.aamend.hadoop.clustering.array.mapreduce.*;
+import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Cluster;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
+import com.aamend.hadoop.clustering.mapreduce.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;

@@ -1,6 +1,6 @@
-package com.aamend.hadoop.clustering.array.mapreduce;
+package com.aamend.hadoop.clustering.mapreduce;
 
-import com.aamend.hadoop.clustering.array.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;

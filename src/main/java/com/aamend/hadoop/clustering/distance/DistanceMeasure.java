@@ -1,4 +1,4 @@
-package com.aamend.hadoop.clustering.array.distance;
+package com.aamend.hadoop.clustering.distance;
 
 import org.apache.hadoop.conf.Configuration;
 

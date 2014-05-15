@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.aamend.hadoop</groupId>
-    <artifactId>hadoop-clustering-array</artifactId>
+    <artifactId>hadoop-id-clustering</artifactId>
     <name>Hadoop Clustering Array</name>
     <description>Custom implementation of Mahout clustering for primitive arrays
         instead of Vectors

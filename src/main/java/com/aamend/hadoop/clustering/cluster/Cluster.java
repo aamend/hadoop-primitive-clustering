@@ -1,6 +1,6 @@
-package com.aamend.hadoop.clustering.array.cluster;
+package com.aamend.hadoop.clustering.cluster;
 
-import com.aamend.hadoop.clustering.array.io.SequenceModel;
+import com.aamend.hadoop.clustering.io.SequenceModel;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 

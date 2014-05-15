@@ -1,4 +1,4 @@
-package com.aamend.hadoop.clustering.array.mapreduce;
+package com.aamend.hadoop.clustering.mapreduce;
 
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;

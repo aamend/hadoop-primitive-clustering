@@ -1,9 +1,9 @@
-package com.aamend.hadoop.clustering.array.mapreduce;
+package com.aamend.hadoop.clustering.mapreduce;
 
-import com.aamend.hadoop.clustering.array.cluster.Canopy;
-import com.aamend.hadoop.clustering.array.cluster.CanopyConfigKeys;
-import com.aamend.hadoop.clustering.array.cluster.Cluster;
-import com.aamend.hadoop.clustering.array.distance.DistanceMeasure;
+import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Cluster;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
@@ -21,20 +21,15 @@ import java.util.List;
 /**
  * Created by antoine on 12/05/14.
  */
-public class ClusterDataMapper extends
+public class ClusterFilterMapper extends
         Mapper<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
     private static final Text KEY = new Text();
-    public static final String COUNTER = "data";
-    public static final String COUNTER_CLUSTERED = "clustered.points";
-    public static final String COUNTER_NON_CLUSTERED = "non.clustered.points";
-
     private List<Cluster> clusters;
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(ClusterDataMapper.class);
+            LoggerFactory.getLogger(ClusterFilterMapper.class);
 
     private DistanceMeasure measure;
-    private float minSimilarity;
 
     @Override
     protected void setup(Context context) throws IOException {
@@ -42,12 +37,11 @@ public class ClusterDataMapper extends
         // Configure distance measure
         Configuration conf = context.getConfiguration();
         measure = CanopyConfigKeys.configureMeasure(conf);
-        minSimilarity = conf.getFloat(CanopyConfigKeys.MIN_SIMILARITY, 0.0f);
         clusters = Lists.newArrayList();
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
 
-            if (uri.getPath().contains(Cluster.CLUSTERS_FINAL_DIR)) {
+            if (uri.getPath().contains(Cluster.CLUSTERS_TMP_DIR)) {
                 LOGGER.info("Loading file [{}] from distributed cache", uri);
                 // Read canopies
                 SequenceFile.Reader reader = new SequenceFile.Reader(conf,
@@ -99,17 +93,15 @@ public class ClusterDataMapper extends
             }
         }
 
-        if (maxSimilarity < minSimilarity) {
+        if (maxSimilarity == 0.0d) {
             // Point could not be added to any cluster
-            context.getCounter(COUNTER, COUNTER_NON_CLUSTERED).increment(1L);
             return;
         }
 
         // Point has been added to that cluster
-        context.getCounter(COUNTER, COUNTER_CLUSTERED).increment(1L);
         Canopy cluster = (Canopy) clusters.get(maxSimilarityId);
         KEY.set(cluster.getIdentifier());
-        context.write(KEY, value);
+        context.write(KEY, new ArrayPrimitiveWritable(cluster.getCenter()));
 
     }
 }

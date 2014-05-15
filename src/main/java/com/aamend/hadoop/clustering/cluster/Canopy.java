@@ -1,6 +1,6 @@
-package com.aamend.hadoop.clustering.array.cluster;
+package com.aamend.hadoop.clustering.cluster;
 
-import com.aamend.hadoop.clustering.array.distance.DistanceMeasure;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 
 import java.util.Arrays;
 
