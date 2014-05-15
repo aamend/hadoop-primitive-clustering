@@ -14,7 +14,7 @@ public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
     String CLUSTERED_POINTS_DIR = "clustered-points";
 
     // default directory for output of clusters per iteration
-    String CLUSTERS_TMP_DIR = "clusters-";
+    String CLUSTERS_TMP_DIR = "clusters-tmp-";
 
     // final directory for output of clusters per iteration
     String CLUSTERS_FINAL_DIR = "clusters-final";
