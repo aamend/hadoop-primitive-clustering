@@ -20,6 +20,9 @@ public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
     // default directory for output of clusters per iteration
     String CLUSTERS_DIR = "clusters-";
 
+    // final directory for output of clusters per iteration
+    String CLUSTERS_FINAL_DIR = "clusters";
+
     // default suffix for output of clusters for final iteration
     String FINAL_ITERATION_SUFFIX = "-final";
 
@@ -36,6 +39,13 @@ public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
      * @return an Integer Array
      */
     int[] getCenter();
+
+    /**
+     * Get the number of "observations" of the Cluster
+     *
+     * @return a long
+     */
+    long getObservations();
 
     /**
      * Produce a custom, human-friendly, printable representation of the Cluster.

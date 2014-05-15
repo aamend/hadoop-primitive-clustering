@@ -1,6 +1,6 @@
-package com.aamend.hadoop.mahout.sequence.distance;
+package com.aamend.hadoop.mahout.sequence.cluster;
 
-import com.aamend.hadoop.mahout.sequence.cluster.AbstractCluster;
+import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 
@@ -19,6 +19,12 @@ public class DistanceMeasureCluster extends AbstractCluster {
     public DistanceMeasureCluster(int[] point, int id,
                                   DistanceMeasure measure) {
         super(point, id);
+        this.measure = measure;
+    }
+
+    public DistanceMeasureCluster(int[] point, int id, long observations,
+                                  DistanceMeasure measure) {
+        super(point, id, observations);
         this.measure = measure;
     }
 
@@ -54,7 +60,6 @@ public class DistanceMeasureCluster extends AbstractCluster {
 
     @Override
     public double pdf(ArrayPrimitiveWritable apw) {
-        // Similarity
         return 1.0d - measure.distance((int[]) apw.get(), getCenter());
     }
 

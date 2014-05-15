@@ -21,16 +21,15 @@ import java.util.List;
 /**
  * Created by antoine on 12/05/14.
  */
-public class ClusterDataMapper extends
+public class ClusterFilterMapper extends
         Mapper<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
     private static final Text KEY = new Text();
     private List<Cluster> clusters;
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(ClusterDataMapper.class);
+            LoggerFactory.getLogger(ClusterFilterMapper.class);
 
     private DistanceMeasure measure;
-    private float minSimilarity;
 
     @Override
     protected void setup(Context context) throws IOException {
@@ -38,7 +37,6 @@ public class ClusterDataMapper extends
         // Configure distance measure
         Configuration conf = context.getConfiguration();
         measure = CanopyConfigKeys.configureMeasure(conf);
-        minSimilarity = conf.getFloat(CanopyConfigKeys.MIN_SIMILARITY, 0.0f);
         clusters = Lists.newArrayList();
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
@@ -95,7 +93,7 @@ public class ClusterDataMapper extends
             }
         }
 
-        if (maxSimilarity < minSimilarity) {
+        if (maxSimilarity == 0.0d) {
             // Point could not be added to any cluster
             return;
         }
@@ -103,7 +101,7 @@ public class ClusterDataMapper extends
         // Point has been added to that cluster
         Canopy cluster = (Canopy) clusters.get(maxSimilarityId);
         KEY.set(cluster.getIdentifier());
-        context.write(KEY, value);
+        context.write(KEY, new ArrayPrimitiveWritable(cluster.getCenter()));
 
     }
 }

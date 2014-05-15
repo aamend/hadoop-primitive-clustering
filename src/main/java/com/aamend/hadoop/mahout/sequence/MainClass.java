@@ -21,15 +21,12 @@ public class MainClass {
     public void run()
             throws InterruptedException, IOException, ClassNotFoundException {
         Configuration conf = new Configuration();
-        ClusterDriver
-                .buildClusters(conf, new Path("sequences"), new Path("tmp"),
+        ClusterDriver.buildClusters(conf, new Path("sequences"), new Path("tmp"),
                         28,
-                        new LevenshteinDistanceMeasure(), 0.35f, 0.3f);
+                        new LevenshteinDistanceMeasure(), 0.33f, 0.3f, 10);
 
-        ClusterDriver
-                .clusterData(conf, new Path("sequences"), new Path("tmp"),
-                        new LevenshteinDistanceMeasure(), 0.35f, 10,
-                        28);
+        ClusterDriver.clusterData(conf, new Path("sequences"), new Path("tmp"),
+                new LevenshteinDistanceMeasure(), 0.33f, 28);
     }
 
 }

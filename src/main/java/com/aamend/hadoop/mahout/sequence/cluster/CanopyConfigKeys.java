@@ -19,6 +19,7 @@ public final class CanopyConfigKeys {
     }
 
     public static final String MIN_OBS = "min.cluster.observations";
+    public static final String MIN_SIMILARITY = "min.cluster.similarity";
     public static final String T1_KEY = "cluster.t1";
     public static final String T2_KEY = "cluster.t2";
     public static final String DISTANCE_KEY = "cluster.measure";

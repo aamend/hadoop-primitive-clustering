@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Author: antoine.amend@gmail.com
@@ -16,13 +17,21 @@ public abstract class AbstractCluster implements Cluster {
 
     private int id;
     private int[] center;
+    private long observations;
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AbstractCluster.class);
 
+    protected AbstractCluster(int[] sequence, int id, long observations) {
+        this.center = sequence;
+        this.id = id;
+        this.observations = observations;
+    }
+
     protected AbstractCluster(int[] sequence, int id) {
         this.center = sequence;
         this.id = id;
+        this.observations = 0L;
     }
 
     @Override
@@ -49,9 +58,9 @@ public abstract class AbstractCluster implements Cluster {
     public String asFormatString() {
         StringBuilder buf = new StringBuilder(50);
         buf.append(getIdentifier());
-        buf.append("{");
+        buf.append("{n=").append(observations);
         if (getCenter() != null) {
-            buf.append(" c=").append(formatSequence(getCenter()));
+            buf.append(" c=").append(Arrays.toString(getCenter()));
         }
         buf.append('}');
         return buf.toString();
@@ -65,26 +74,21 @@ public abstract class AbstractCluster implements Cluster {
         return center;
     }
 
+    public long getObservations() {
+        return observations;
+    }
+
+    public void setObservations(long observations) {
+        this.observations = observations;
+    }
+
     public void observe(int[] x) {
+        observations++;
         if (center == null) {
             center = x.clone();
         }
     }
 
     public abstract String getIdentifier();
-
-    public static String formatSequence(int[] sequence) {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append('[');
-        for (int element : sequence) {
-            buffer.append(element).append(", ");
-        }
-
-        if (buffer.length() > 1) {
-            buffer.setLength(buffer.length() - 2);
-        }
-        buffer.append(']');
-        return buffer.toString();
-    }
 
 }

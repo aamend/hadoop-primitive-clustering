@@ -1,7 +1,8 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasureCluster;
+
+import java.util.Arrays;
 
 /**
  * Author: antoine.amend@gmail.com
@@ -16,9 +17,15 @@ public class Canopy
         observe(center);
     }
 
+    public Canopy(int[] center, int canopyId, long observations,
+                  DistanceMeasure measure) {
+        super(center, canopyId, observations, measure);
+        observe(center);
+    }
+
     @Override
     public String toString() {
-        return getIdentifier() + ": " + getCenter();
+        return getIdentifier() + ": " + Arrays.toString(getCenter());
     }
 
     @Override
