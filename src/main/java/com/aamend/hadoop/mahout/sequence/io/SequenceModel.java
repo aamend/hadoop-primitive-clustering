@@ -8,19 +8,8 @@ import org.apache.hadoop.io.Writable;
  */
 public interface SequenceModel<O> extends Writable {
 
-    /**
-     * Return the probability that the observation is described by this model
-     *
-     * @param x an Observation from the posterior
-     * @return the probability that x is in the receiver
-     */
     double pdf(O x);
 
-    /**
-     * Observe the given observation, retaining information about it
-     *
-     * @param x an Observation from the posterior
-     */
     void observe(O x);
 
 }

@@ -36,8 +36,8 @@ public class ClusterCreateMapper extends
         // Retrieve params fom configuration
         Configuration conf = context.getConfiguration();
         measure = CanopyConfigKeys.configureMeasure(conf);
-        t1 = conf.getFloat(CanopyConfigKeys.T1_KEY, 1.0f);
-        t2 = conf.getFloat(CanopyConfigKeys.T2_KEY, 0.8f);
+        t1 = conf.getFloat(CanopyConfigKeys.CLUSTER_T1, 1.0f);
+        t2 = conf.getFloat(CanopyConfigKeys.CLUSTER_T2, 0.8f);
 
         LOGGER.info("Configuring distance with T1, T2 = {}, {}", t1, t2);
 

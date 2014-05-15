@@ -23,14 +23,13 @@ public class ClusterFilterReducer extends
 
     public static final String COUNTER = "data";
     public static final String COUNTER_CANOPY = "canopies";
-    public static final String COUNTER_REJECTED_CANOPY = "rejected.canopies";
 
     @Override
     protected void setup(
             Context context)
             throws IOException, InterruptedException {
         Configuration conf = context.getConfiguration();
-        minObservations = conf.getLong(CanopyConfigKeys.MIN_OBS, 1);
+        minObservations = conf.getLong(CanopyConfigKeys.MIN_OBSERVATIONS, 1);
     }
 
     @Override
@@ -50,9 +49,9 @@ public class ClusterFilterReducer extends
 
         // Make sure we have enough data points
         if (count < minObservations) {
-            context.getCounter(COUNTER, COUNTER_REJECTED_CANOPY).increment(1L);
             LOGGER.warn(
-                    "Cluster {} rejected - Not enough data points ({} < CF)",
+                    "Cluster {} rejected - " +
+                            "Not enough data points ({} < MIN_OBSERVATIONS)",
                     Arrays.toString((int[]) center.get()), count);
             return;
         }

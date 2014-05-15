@@ -3,19 +3,17 @@ package com.aamend.hadoop.mahout.sequence.mapreduce;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Created by antoine on 12/05/14.
  */
 public class ClusterDataReducer extends
-        Reducer<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
+        Reducer<Text, ArrayPrimitiveWritable, Text, Text> {
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(ClusterDataReducer.class);
+    private static final Text VALUE = new Text();
 
     @Override
     protected void reduce(Text key,
@@ -25,7 +23,8 @@ public class ClusterDataReducer extends
 
         // Used to group all data belonging to a same cluster
         for (ArrayPrimitiveWritable value : values) {
-            context.write(key, value);
+            VALUE.set(Arrays.toString((int[]) value.get()));
+            context.write(key, VALUE);
         }
     }
 }

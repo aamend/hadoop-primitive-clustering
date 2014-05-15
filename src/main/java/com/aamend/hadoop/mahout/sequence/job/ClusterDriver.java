@@ -31,69 +31,82 @@ public class ClusterDriver {
     /**
      * Build a directory of Canopy clusters from the input arguments.
      * Create clusters using several Map-Reduce jobs (at least 2). At each
-     * iteration, the number of reducers is 2 times smaller (until reached 1)
-     * while clusters' size get slightly higher (until T1, T2).
+     * iteration, the number of reducers is 2 times smaller (until reached 1).
      *
      * @param conf     the Configuration
-     * @param input    the Path to the directory containing input arrays
-     * @param output   the Path for all output directories
-     * @param reducers the number of reducers to use
+     * @param input    the Path containing input arrays
+     * @param output   the final Path where clusters / data will be written to
+     * @param reducers the number of reducers to use (at least 1)
      * @param measure  the DistanceMeasure
-     * @param finalT1  the double T1 distance metric
-     * @param finalT2  the double T2 distance metric
-     * @param minObs   the minimum observation per cluster
+     * @param t1       the double CLUSTER_T1 distance metric
+     * @param t2       the double CLUSTER_T2 distance metric
+     * @param cf       the minimum observations per cluster
      * @return the number of created clusters
      */
     public static long buildClusters(Configuration conf, Path input,
                                      Path output, int reducers,
                                      DistanceMeasure measure,
-                                     float finalT1, float finalT2, long minObs)
+                                     float t1, float t2, long cf)
             throws IOException, InterruptedException, ClassNotFoundException {
 
-        FileSystem fs = FileSystem.get(conf);
-        if (fs.exists(output)) {
+        // Mount FileSystem
+        FileSystem fileSystem = FileSystem.get(conf);
+
+        // Compute number of required iterations
+        if (reducers < 1) {
+            throw new IllegalArgumentException(
+                    "Number of reducers must be greater or equals to 1");
+        }
+        double num = Math.floor(Math.log(reducers) / Math.log(2)) + 1;
+        int itTotal = (int) num;
+        int it = 0;
+        long canopies = 0;
+
+        float itT1Increase = t1 / itTotal;
+        float itT2Increase = t2 / itTotal;
+        float itT1 = itT1Increase;
+        float itT2 = itT2Increase;
+
+        itTotal++;
+
+        // Prepare input, output and temporary path
+        String uuid = UUID.randomUUID().toString().toUpperCase();
+        Path finPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
+        Path tmpPath = new Path("/tmp/" + Cluster.CLUSTERS_TMP_DIR + uuid);
+        Path itOPath = new Path(tmpPath, Cluster.CLUSTERS_TMP_DIR + it);
+        Path itIPath = input;
+
+        // Make sure output path does not exist
+        if (fileSystem.exists(output)) {
             throw new IOException("Output path " + output + " already exists");
         }
 
-        // Prepare job iteration
-        int numIterations =
-                (int) Math.floor(Math.log(reducers) / Math.log(2)) + 1;
-        float t1It = finalT1 / numIterations;
-        float t2It = finalT2 / numIterations;
-        float t1 = t1It;
-        float t2 = t2It;
-        int iteration = 0;
-        long canopies = 0;
-
-        // An additional iteration will be needed to filter out clusters
-        numIterations++;
-
-        Path clustersInput = input;
-        Path tmpPath = new Path("/tmp/" + Cluster.INITIAL_CLUSTERS_DIR +
-                UUID.randomUUID().toString().toUpperCase());
-        Path clustersOutput = new Path(tmpPath, Cluster.INITIAL_CLUSTERS_DIR);
-
+        // Start MapReduce iteration
+        // Read initial arrays and cluster them
+        // Read clusters' arrays and cluster them
+        // ../..
+        // Until one final reducer
         while (reducers >= 1) {
 
-            iteration++;
+            it++;
 
-            LOGGER.info("Job      : {}/{}", iteration, numIterations);
-            LOGGER.info("T1       : {}", t1);
-            LOGGER.info("T2       : {}", t2);
-            LOGGER.info("Input    : {}", clustersInput.toString());
-            LOGGER.info("Output   : {}", clustersOutput.toString());
+            LOGGER.info("Job      : {}/{}", it, itTotal);
+            LOGGER.info("T1       : {}", itT1);
+            LOGGER.info("T2       : {}", itT2);
             LOGGER.info("Reducers : {}", reducers);
+            LOGGER.info("Input    : {}", itIPath.toString());
+            LOGGER.info("Output   : {}", itOPath.toString());
 
             // Add job specific configuration
-            conf.set(CanopyConfigKeys.DISTANCE_KEY,
-                    measure.getClass().getName());
-            conf.setFloat(CanopyConfigKeys.T1_KEY, t1);
-            conf.setFloat(CanopyConfigKeys.T2_KEY, t2);
-            conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, t1);
+            String measureClass = measure.getClass().getName();
+            conf.set(CanopyConfigKeys.CLUSTER_MEASURE, measureClass);
+            conf.setFloat(CanopyConfigKeys.CLUSTER_T1, itT1);
+            conf.setFloat(CanopyConfigKeys.CLUSTER_T2, itT2);
+            conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, itT1);
 
             // Prepare job
-            Job createJob = new Job(conf,
-                    "Create clusters - " + iteration + "/" + numIterations);
+            String name = "Create clusters - " + it + "/" + itTotal;
+            Job createJob = new Job(conf, name);
             createJob.setMapperClass(ClusterCreateMapper.class);
             createJob.setReducerClass(ClusterCreateReducer.class);
             createJob.setJarByClass(ClusterDriver.class);
@@ -104,8 +117,8 @@ public class ClusterDriver {
             createJob.setOutputValueClass(ArrayPrimitiveWritable.class);
             createJob.setInputFormatClass(SequenceFileInputFormat.class);
             createJob.setOutputFormatClass(SequenceFileOutputFormat.class);
-            SequenceFileInputFormat.addInputPath(createJob, clustersInput);
-            SequenceFileOutputFormat.setOutputPath(createJob, clustersOutput);
+            SequenceFileInputFormat.addInputPath(createJob, itIPath);
+            SequenceFileOutputFormat.setOutputPath(createJob, itOPath);
 
             // Submit job
             if (!createJob.waitForCompletion(true)) {
@@ -114,92 +127,71 @@ public class ClusterDriver {
                                 createJob.getTrackingURL());
             }
 
-            canopies = createJob.getCounters()
-                    .findCounter(ClusterCreateReducer.COUNTER,
-                            ClusterCreateReducer.COUNTER_CANOPY)
-                    .getValue();
+            // Retrieve counters
+            canopies = createJob.getCounters().findCounter(
+                    ClusterCreateReducer.COUNTER,
+                    ClusterCreateReducer.COUNTER_CANOPY).getValue();
 
             // Get 2 times less reducers at next step
             reducers = reducers / 2;
 
             // Get slightly larger clusters at next step
-            t1 += t1It;
-            t2 += t2It;
+            itT1 += itT1Increase;
+            itT2 += itT2Increase;
 
             // Output of previous job will be input as next one
-            String newDir;
-            if (reducers == 1) {
-                // Output of previous job will be input as next one
-                newDir = Cluster.CLUSTERS_DIR + 0 +
-                        Cluster.FINAL_ITERATION_SUFFIX;
-            } else {
-                // Output of previous job will be input as next one
-                newDir = Cluster.CLUSTERS_DIR + iteration;
-            }
-
-            clustersInput = clustersOutput;
-            clustersOutput = new Path(tmpPath, newDir);
+            itIPath = itOPath;
+            itOPath = new Path(tmpPath, Cluster.CLUSTERS_TMP_DIR + it);
 
         }
 
-        if (canopies == 0) {
-            LOGGER.warn("Could not build any canopy");
-            return 0;
-        }
-
-        LOGGER.info(
-                "Now filtering {} canopies with less than {} observations",
-                canopies, minObs);
-
-        // Retrieve cluster information
-        String finalDir = Cluster.CLUSTERS_DIR + 0 +
-                Cluster.FINAL_ITERATION_SUFFIX;
-        Path tmpClusterPath = new Path(tmpPath, finalDir);
-        Path finalClusterPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
-
-        // Make sure cluster directory exist
-        if (!fs.exists(tmpClusterPath))
+        // Make sure we have at least one canopy created
+        if (canopies == 0)
             throw new IOException(
-                    "Clusters directory [" + tmpClusterPath +
-                            "] does not exist");
+                    "Could not build any canopy. " +
+                            "Please check your input arrays " +
+                            "and / or your {T1,T2} parameters");
 
-        // Retrieve cluster's files (in theory only one
-        FileStatus[] fss = fs.listStatus(tmpClusterPath, new PathFilter() {
+        // Retrieve cluster's files (in theory only one)
+        FileStatus[] fss = fileSystem.listStatus(itOPath, new PathFilter() {
             @Override
             public boolean accept(Path path) {
                 String name = path.getName();
-                return name.contains("part");
+                return name.contains("part-r");
             }
         });
-
-        // Make sure cluster's file exists
-        if (fss.length == 0)
+        if (fss.length == 0) {
             throw new IOException(
-                    "Clusters sequence files do not exist in directory [" +
-                            tmpClusterPath + "]");
+                    "Clusters sequence file(s) do not exist in directory [" +
+                            itOPath + "]");
+        }
 
-        // Add each cluster file (in theory only one) to hadoop distributed cache
-        for (FileStatus fileStatus : fss) {
-            LOGGER.info("Adding cluster file [" + fileStatus.getPath() +
-                    "] to distributed cache");
-            DistributedCache.addCacheFile(fileStatus.getPath().toUri(), conf);
+        // Start second set of MapReduce
+        // Read initial arrays and cluster them
+        // Filter out clusters with less than MIN_OBSERVATION arrays
+
+        it++;
+
+        LOGGER.info("Job      : {}/{}", it, itTotal);
+        LOGGER.info("Reducers : 1");
+        LOGGER.info("Input    : {}", input.toString());
+        LOGGER.info("Output   : {}", finPath.toString());
+
+        // Add each cluster file to distributed cache
+        for (FileStatus fs : fss) {
+            LOGGER.info("Cache    : {}", fs.getPath());
+            DistributedCache.addCacheFile(fs.getPath().toUri(), conf);
         }
 
         // Add job specific configuration
-        conf.set(CanopyConfigKeys.DISTANCE_KEY, measure.getClass().getName());
-        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, finalT1);
-        conf.setLong(CanopyConfigKeys.MIN_OBS, minObs);
+        String measureClass = measure.getClass().getName();
+        conf.set(CanopyConfigKeys.CLUSTER_MEASURE, measureClass);
+        conf.setLong(CanopyConfigKeys.MIN_OBSERVATIONS, cf);
+        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, t1);
 
-        // Prepare job
-        iteration++;
-
-        LOGGER.info("Job      : {}/{}", iteration, numIterations);
-        LOGGER.info("Input    : {}", input.toString());
-        LOGGER.info("Output   : {}", finalClusterPath.toString());
-        LOGGER.info("Reducers : 1");
-
-        Job filterJob = new Job(conf,
-                "Create clusters - " + iteration + "/" + numIterations);
+        // Prepare next job
+        String name = "Create clusters - " + it + "/" + itTotal;
+        Job filterJob = new Job(conf, name);
         filterJob.setMapperClass(ClusterFilterMapper.class);
         filterJob.setReducerClass(ClusterFilterReducer.class);
         filterJob.setJarByClass(ClusterDriver.class);
@@ -211,7 +203,7 @@ public class ClusterDriver {
         filterJob.setInputFormatClass(SequenceFileInputFormat.class);
         filterJob.setOutputFormatClass(SequenceFileOutputFormat.class);
         SequenceFileInputFormat.addInputPath(filterJob, input);
-        SequenceFileOutputFormat.setOutputPath(filterJob, finalClusterPath);
+        SequenceFileOutputFormat.setOutputPath(filterJob, finPath);
 
         // Submit job
         if (!filterJob.waitForCompletion(true)) {
@@ -220,20 +212,24 @@ public class ClusterDriver {
                             filterJob.getTrackingURL());
         }
 
-        canopies = filterJob.getCounters()
-                .findCounter(ClusterFilterReducer.COUNTER,
-                        ClusterFilterReducer.COUNTER_CANOPY)
-                .getValue();
+        // Retrieve counters
+        canopies = filterJob.getCounters().findCounter(
+                ClusterFilterReducer.COUNTER,
+                ClusterFilterReducer.COUNTER_CANOPY).getValue();
 
-        LOGGER.info("{} Clusters available on {}", canopies, tmpClusterPath);
+        // Make sure we have at least one canopy created
+        if (canopies == 0)
+            throw new IOException(
+                    "Could not build any canopy. " +
+                            "Please check your input arrays " +
+                            "and / or your {T1,T2} parameters");
+
+        LOGGER.info("{} canopies available on {}", canopies, finPath);
         return canopies;
 
     }
 
     /**
-     * Build a directory of Canopy clusters from the input arguments and, if
-     * requested, cluster the input vectors using these clusters
-     *
      * @param conf          the Configuration
      * @param input         the Path to the directory containing input arrays
      * @param output        the Path for all output directories
@@ -248,67 +244,99 @@ public class ClusterDriver {
             throws IOException, ClassNotFoundException, InterruptedException {
 
         // Retrieve cluster information
-        FileSystem fs = FileSystem.get(conf);
-        Path clusterPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
+        FileSystem fileSystem = FileSystem.get(conf);
         Path dataPath = new Path(output, Cluster.CLUSTERED_POINTS_DIR);
+        Path clusterPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
 
         // Make sure cluster directory exist
-        if (!fs.exists(clusterPath))
+        if (!fileSystem.exists(clusterPath))
             throw new IOException(
                     "Clusters directory [" + clusterPath +
                             "] does not exist");
 
-        // Retrieve cluster's files (in theory only one
-        FileStatus[] fss = fs.listStatus(clusterPath, new PathFilter() {
+        // Make sure data directory does not exist
+        if (fileSystem.exists(dataPath))
+            throw new IOException(
+                    "Data directory [" + clusterPath +
+                            "] already exists");
+
+        // Retrieve cluster's files (in theory only one)
+        FileStatus[] fss = fileSystem.listStatus(clusterPath, new PathFilter() {
             @Override
             public boolean accept(Path path) {
                 String name = path.getName();
-                return name.contains("part");
+                return name.contains("part-r");
             }
         });
-
-        // Make sure cluster's file exists
-        if (fss.length == 0)
+        if (fss.length == 0) {
             throw new IOException(
-                    "Clusters sequence files do not exist in directory [" +
+                    "Clusters sequence file(s) do not exist in directory [" +
                             clusterPath + "]");
+        }
 
-        // Add each cluster file (in theory only one) to hadoop distributed cache
-        for (FileStatus fileStatus : fss) {
-            LOGGER.info("Adding cluster file [" + fileStatus.getPath() +
-                    "] to distributed cache");
-            DistributedCache.addCacheFile(fileStatus.getPath().toUri(), conf);
+        LOGGER.info("Job      : 1/1");
+        LOGGER.info("Reducers : {}", reducers);
+        LOGGER.info("Input    : {}", input.toString());
+        LOGGER.info("Output   : {}", dataPath.toString());
+
+        // Add each cluster file to distributed cache
+        for (FileStatus fs : fss) {
+            LOGGER.info("Cache    : {}", fs.getPath());
+            DistributedCache.addCacheFile(fs.getPath().toUri(), conf);
         }
 
         // Add job specific configuration
-        conf.set(CanopyConfigKeys.DISTANCE_KEY, measure.getClass().getName());
+        String measureClass = measure.getClass().getName();
+        conf.set(CanopyConfigKeys.CLUSTER_MEASURE, measureClass);
         conf.setFloat(CanopyConfigKeys.MIN_SIMILARITY, minSimilarity);
-        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, minSimilarity);
+        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, 1 - minSimilarity);
 
         // Prepare job
-        Job job = new Job(conf, "Clustering data");
-        job.setMapperClass(ClusterDataMapper.class);
-        job.setReducerClass(ClusterDataReducer.class);
-        job.setJarByClass(ClusterDriver.class);
-        job.setNumReduceTasks(reducers);
-        job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(ArrayPrimitiveWritable.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(ArrayPrimitiveWritable.class);
-        job.setInputFormatClass(SequenceFileInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
-        SequenceFileInputFormat.addInputPath(job, input);
-        FileOutputFormat.setOutputPath(job, dataPath);
+        Job clusterJob = new Job(conf, "Clustering data - 1/1");
+        clusterJob.setMapperClass(ClusterDataMapper.class);
+        clusterJob.setReducerClass(ClusterDataReducer.class);
+        clusterJob.setJarByClass(ClusterDriver.class);
+        clusterJob.setNumReduceTasks(reducers);
+        clusterJob.setMapOutputKeyClass(Text.class);
+        clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
+        clusterJob.setOutputKeyClass(Text.class);
+        clusterJob.setOutputValueClass(ArrayPrimitiveWritable.class);
+        clusterJob.setInputFormatClass(SequenceFileInputFormat.class);
+        clusterJob.setOutputFormatClass(TextOutputFormat.class);
+        SequenceFileInputFormat.addInputPath(clusterJob, input);
+        FileOutputFormat.setOutputPath(clusterJob, dataPath);
 
         // Submit job
-        if (!job.waitForCompletion(true)) {
+        if (!clusterJob.waitForCompletion(true)) {
             throw new IOException(
                     "MapReduce execution failed, please check " +
-                            job.getTrackingURL());
+                            clusterJob.getTrackingURL());
         }
 
-        LOGGER.info("Clustered points available on {}", clusterPath);
+        // Retrieve counters
+        long clusteredPoints = clusterJob.getCounters().findCounter(
+                ClusterDataMapper.COUNTER,
+                ClusterDataMapper.COUNTER_CLUSTERED).getValue();
 
+        // Retrieve counters
+        long nonClusteredPoints = clusterJob.getCounters().findCounter(
+                ClusterDataMapper.COUNTER,
+                ClusterDataMapper.COUNTER_NON_CLUSTERED).getValue();
+
+        if (nonClusteredPoints > 0)
+            LOGGER.warn("{} points could not have been clustered",
+                    nonClusteredPoints);
+
+        // Make sure we have at least one point clustered
+        if (clusteredPoints == 0) {
+            LOGGER.error(
+                    "Could not cluster any data. " +
+                            "Please check both your input arrays " +
+                            "and clusters' centers");
+        } else {
+            LOGGER.info("{} points have been clustered - Data available on {}",
+                    clusteredPoints, clusterPath);
+        }
     }
 
 

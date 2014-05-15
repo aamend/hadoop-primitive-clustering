@@ -61,7 +61,7 @@ public class LevenshteinDistanceMeasureTest {
         LevenshteinDistanceMeasure measure = new
                 LevenshteinDistanceMeasure();
         Configuration conf = new Configuration();
-        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE, 0.18f);
+        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, 0.18f);
         measure.configure(conf);
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

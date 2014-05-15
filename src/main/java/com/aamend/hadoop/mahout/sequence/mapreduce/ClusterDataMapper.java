@@ -25,6 +25,10 @@ public class ClusterDataMapper extends
         Mapper<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
 
     private static final Text KEY = new Text();
+    public static final String COUNTER = "data";
+    public static final String COUNTER_CLUSTERED = "clustered.points";
+    public static final String COUNTER_NON_CLUSTERED = "non.clustered.points";
+
     private List<Cluster> clusters;
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ClusterDataMapper.class);
@@ -43,7 +47,7 @@ public class ClusterDataMapper extends
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
 
-            if (uri.getPath().contains(Cluster.FINAL_ITERATION_SUFFIX)) {
+            if (uri.getPath().contains(Cluster.CLUSTERS_FINAL_DIR)) {
                 LOGGER.info("Loading file [{}] from distributed cache", uri);
                 // Read canopies
                 SequenceFile.Reader reader = new SequenceFile.Reader(conf,
@@ -97,10 +101,12 @@ public class ClusterDataMapper extends
 
         if (maxSimilarity < minSimilarity) {
             // Point could not be added to any cluster
+            context.getCounter(COUNTER, COUNTER_NON_CLUSTERED).increment(1L);
             return;
         }
 
         // Point has been added to that cluster
+        context.getCounter(COUNTER, COUNTER_CLUSTERED).increment(1L);
         Canopy cluster = (Canopy) clusters.get(maxSimilarityId);
         KEY.set(cluster.getIdentifier());
         context.write(KEY, value);

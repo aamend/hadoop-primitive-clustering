@@ -11,54 +11,23 @@ import org.apache.hadoop.io.ArrayPrimitiveWritable;
 public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
 
     // default directory for all clustered points
-    String CLUSTERED_POINTS_DIR = "clusteredPoints";
-
-    // default directory for initial clusters to prime iterative clustering
-    // algorithms
-    String INITIAL_CLUSTERS_DIR = "clusters-0";
+    String CLUSTERED_POINTS_DIR = "clustered-points";
 
     // default directory for output of clusters per iteration
-    String CLUSTERS_DIR = "clusters-";
+    String CLUSTERS_TMP_DIR = "clusters-";
 
     // final directory for output of clusters per iteration
-    String CLUSTERS_FINAL_DIR = "clusters";
+    String CLUSTERS_FINAL_DIR = "clusters-final";
 
-    // default suffix for output of clusters for final iteration
-    String FINAL_ITERATION_SUFFIX = "-final";
 
-    /**
-     * Get the id of the Cluster
-     *
-     * @return a unique integer
-     */
     int getId();
 
-    /**
-     * Get the "center" of the Cluster as an array
-     *
-     * @return an Integer Array
-     */
     int[] getCenter();
 
-    /**
-     * Get the number of "observations" of the Cluster
-     *
-     * @return a long
-     */
     long getObservations();
 
-    /**
-     * Produce a custom, human-friendly, printable representation of the Cluster.
-     *
-     * @return a String
-     */
     String asFormatString();
 
-    /**
-     * Configure sequence based on Hadoop configuration
-     *
-     * @param job
-     */
     void configure(Configuration job);
 
 }

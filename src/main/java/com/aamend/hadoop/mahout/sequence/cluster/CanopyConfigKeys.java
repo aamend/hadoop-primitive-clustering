@@ -1,11 +1,8 @@
 package com.aamend.hadoop.mahout.sequence.cluster;
 
 import com.aamend.hadoop.mahout.sequence.distance.DistanceMeasure;
-import com.aamend.hadoop.mahout.sequence.distance.LevenshteinDistanceMeasure;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -15,28 +12,22 @@ import java.io.IOException;
  */
 public final class CanopyConfigKeys {
 
-    private CanopyConfigKeys() {
-    }
-
-    public static final String MIN_OBS = "min.cluster.observations";
+    public static final String MIN_OBSERVATIONS = "min.cluster.observations";
     public static final String MIN_SIMILARITY = "min.cluster.similarity";
-    public static final String T1_KEY = "cluster.t1";
-    public static final String T2_KEY = "cluster.t2";
-    public static final String DISTANCE_KEY = "cluster.measure";
-    public static final String MAX_DISTANCE_MEASURE = "cluster.max.measure";
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(DistanceMeasure.class);
+    public static final String CLUSTER_T1 = "cluster.t1";
+    public static final String CLUSTER_T2 = "cluster.t2";
+    public static final String CLUSTER_MEASURE = "cluster.measure";
+    public static final String MAX_DISTANCE = "cluster.max.measure";
 
     public static DistanceMeasure configureMeasure(
             Configuration conf) throws IOException {
 
         DistanceMeasure measure;
-        String className =
-                conf.get(CanopyConfigKeys.DISTANCE_KEY);
+        String className = conf.get(CanopyConfigKeys.CLUSTER_MEASURE);
         if (StringUtils.isEmpty(className)) {
-            LOGGER.warn(
-                    "Distance measure is empty, using Levenshtein distance");
-            className = LevenshteinDistanceMeasure.class.getName();
+            throw new IllegalArgumentException(
+                    "Distance measure is empty. " +
+                            "It should be specified from Hadoop configuration");
         }
         try {
             Class<?> clazz = Class.forName(className);

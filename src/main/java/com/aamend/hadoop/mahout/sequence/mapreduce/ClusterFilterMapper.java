@@ -41,7 +41,7 @@ public class ClusterFilterMapper extends
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
 
-            if (uri.getPath().contains(Cluster.FINAL_ITERATION_SUFFIX)) {
+            if (uri.getPath().contains(Cluster.CLUSTERS_TMP_DIR)) {
                 LOGGER.info("Loading file [{}] from distributed cache", uri);
                 // Read canopies
                 SequenceFile.Reader reader = new SequenceFile.Reader(conf,

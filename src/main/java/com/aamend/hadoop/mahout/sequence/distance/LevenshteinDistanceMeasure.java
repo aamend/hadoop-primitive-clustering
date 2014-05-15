@@ -26,15 +26,15 @@ public class LevenshteinDistanceMeasure
                     "Threshold must not be negative");
         }
 
-        /*
-        This implementation only computes the distance if it's less than or equal to the
-        threshold value, returning -1 if it's greater.
-        */
 
+        // This implementation only computes the distance
+        // if it's less than or equal to the threshold value,
+        // returning -1 if it's greater.
         int n = s.length; // length of s
         int m = t.length; // length of t
 
-        // if one string is empty, the edit distance is necessarily the length of the other
+        // if one string is empty, the edit distance is
+        // necessarily the length of the other
         if (n == 0) {
             return m <= threshold ? m : 1;
         } else if (m == 0) {
@@ -75,7 +75,8 @@ public class LevenshteinDistanceMeasure
             final int max = j > Integer.MAX_VALUE - threshold ? n :
                     n < j + threshold ? n : (int) Math.ceil(j + threshold);
 
-            // the stripe may lead off of the table if s and t are of different sizes
+            // the stripe may lead off of the table
+            // if s and t are of different sizes
             if (min > max) {
                 return 1.0;
             }
@@ -91,7 +92,8 @@ public class LevenshteinDistanceMeasure
                     // diagonally left and up
                     d[i] = p[i - 1];
                 } else {
-                    // 1 + minimum of cell to the left, to the top, diagonally left and up
+                    // 1 + minimum of cell to the left, to the top,
+                    // diagonally left and up
                     d[i] = 1 + Math.min(Math.min(d[i - 1], p[i]), p[i - 1]);
                 }
             }
@@ -102,8 +104,8 @@ public class LevenshteinDistanceMeasure
             d = _d;
         }
 
-        // if p[n] is greater than the threshold, there's no guarantee on it being the correct
-        // distance
+        // if p[n] is greater than the threshold,
+        // there's no guarantee on it being the correct distance
         if (p[n] <= threshold) {
             double lev = (double) p[n] / (Math.max(s.length, t.length));
             return lev;
@@ -114,16 +116,15 @@ public class LevenshteinDistanceMeasure
 
     @Override
     public double distance(int[] seq1, int[] seq2) {
-        // Compute Levenshtein threshold
+        // Compute threshold
         int maxDistance = Math.max(seq1.length, seq2.length);
         float threshold = maxDistance * maxLevDistance;
         // Compute normalized distance
         return getNormalizedDistance(seq1, seq2, threshold);
     }
 
-    public void configure(Configuration config) {
+    public void configure(Configuration conf) {
         maxLevDistance =
-                config.getFloat(CanopyConfigKeys.MAX_DISTANCE_MEASURE,
-                        1.0f);
+                conf.getFloat(CanopyConfigKeys.MAX_DISTANCE, 1.0f);
     }
 }
