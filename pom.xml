@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.aamend.hadoop</groupId>
     <artifactId>hadoop-clustering-array</artifactId>
-    <name>Hadoop Cluster Array</name>
+    <name>Hadoop Clustering Array</name>
+    <description>Custom implementation of Mahout clustering for primitive arrays
+        instead of Vectors
+    </description>
     <version>1.2-SNAPSHOT</version>
 
     <packaging>jar</packaging>
@@ -143,16 +148,16 @@
         </plugins>
     </build>
 
-     <scm>
+    <scm>
         <connection>
-            scm:git:git@github.com:aamend/hadoop-cluster-sequence.git
+            scm:git:git@github.com:aamend/hadoop-clustering-array.git
         </connection>
-        <url>https://github.com/aamend/hadoop-cluster-sequence</url>
+        <url>https://github.com/aamend/hadoop-clustering-array</url>
         <developerConnection>
-            scm:git:git@github.com:aamend/hadoop-cluster-sequence.git
+            scm:git:git@github.com:aamend/hadoop-clustering-array.git
         </developerConnection>
-      <tag>hadoop-cluster-sequence-1.0</tag>
-  </scm>
+        <tag>hadoop-cluster-sequence-1.0</tag>
+    </scm>
 
     <distributionManagement>
         <snapshotRepository>
