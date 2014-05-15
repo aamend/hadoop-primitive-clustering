@@ -122,11 +122,11 @@ public class ClusterDriver {
             String name = "Create clusters - " + it + "/" + itTotal;
             LOGGER.info("************************************");
             LOGGER.info("Job      : {}", name);
-            LOGGER.info("T1       : {}", itT1);
-            LOGGER.info("T2       : {}", itT2);
             LOGGER.info("Reducers : {}", reducers);
             LOGGER.info("Input    : {}", itIPath.toString());
             LOGGER.info("Output   : {}", itOPath.toString());
+            LOGGER.info("T1       : {}", itT1);
+            LOGGER.info("T2       : {}", itT2);
             LOGGER.info("************************************");
 
             // Prepare job
@@ -216,6 +216,8 @@ public class ClusterDriver {
         LOGGER.info("Reducers : 1");
         LOGGER.info("Input    : {}", input.toString());
         LOGGER.info("Output   : {}", finPath.toString());
+        LOGGER.info("MinObs.  : {}", cf);
+        LOGGER.info("MaxDis.  : {}", t1);
 
         // Add each cluster file to distributed cache
         for (FileStatus fs : fss) {
@@ -319,6 +321,7 @@ public class ClusterDriver {
         LOGGER.info("Reducers : {}", reducers);
         LOGGER.info("Input    : {}", input.toString());
         LOGGER.info("Output   : {}", dataPath.toString());
+        LOGGER.info("MinSim.  : {}", minSimilarity);
 
         // Add each cluster file to distributed cache
         for (FileStatus fs : fss) {
