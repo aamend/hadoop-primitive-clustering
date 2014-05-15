@@ -1,6 +1,6 @@
 package com.aamend.hadoop.clustering.job;
 
-import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.cluster.Cluster;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.mapreduce.*;
@@ -112,10 +112,10 @@ public class ClusterDriver {
 
             // Add job specific configuration
             String measureClass = measure.getClass().getName();
-            conf.set(CanopyConfigKeys.CLUSTER_MEASURE, measureClass);
-            conf.setFloat(CanopyConfigKeys.CLUSTER_T1, itT1);
-            conf.setFloat(CanopyConfigKeys.CLUSTER_T2, itT2);
-            conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, itT1);
+            conf.set(Canopy.CLUSTER_MEASURE, measureClass);
+            conf.setFloat(Canopy.CLUSTER_T1, itT1);
+            conf.setFloat(Canopy.CLUSTER_T2, itT2);
+            conf.setFloat(Canopy.MAX_DISTANCE, itT1);
 
             String name = "Create clusters - " + it + "/" + itTotal;
             LOGGER.info("************************************");
@@ -214,9 +214,9 @@ public class ClusterDriver {
 
         // Add job specific configuration
         String measureClass = measure.getClass().getName();
-        conf.set(CanopyConfigKeys.CLUSTER_MEASURE, measureClass);
-        conf.setLong(CanopyConfigKeys.MIN_OBSERVATIONS, cf);
-        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, t1);
+        conf.set(Canopy.CLUSTER_MEASURE, measureClass);
+        conf.setLong(Canopy.MIN_OBSERVATIONS, cf);
+        conf.setFloat(Canopy.MAX_DISTANCE, t1);
 
 
         String name = "Create clusters - " + it + "/" + itTotal;
@@ -343,9 +343,9 @@ public class ClusterDriver {
 
         // Add job specific configuration
         String measureClass = measure.getClass().getName();
-        conf.set(CanopyConfigKeys.CLUSTER_MEASURE, measureClass);
-        conf.setFloat(CanopyConfigKeys.MIN_SIMILARITY, minSimilarity);
-        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, minSimilarity);
+        conf.set(Canopy.CLUSTER_MEASURE, measureClass);
+        conf.setFloat(Canopy.MIN_SIMILARITY, minSimilarity);
+        conf.setFloat(Canopy.MAX_DISTANCE, minSimilarity);
 
         // Prepare job
         Job clusterJob = new Job(conf, name);

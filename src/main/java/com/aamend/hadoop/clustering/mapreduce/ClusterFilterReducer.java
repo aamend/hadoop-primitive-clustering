@@ -1,6 +1,6 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
-import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Canopy;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
@@ -29,7 +29,7 @@ public class ClusterFilterReducer extends
             Context context)
             throws IOException, InterruptedException {
         Configuration conf = context.getConfiguration();
-        minObservations = conf.getLong(CanopyConfigKeys.MIN_OBSERVATIONS, 1);
+        minObservations = conf.getLong(Canopy.MIN_OBSERVATIONS, 1);
     }
 
     @Override

@@ -28,6 +28,7 @@ public class MainClass {
 
         Configuration conf = new Configuration();
 
+        System.setProperty("HADOOP_USER_NAME","antoine");
         conf.set("fs.defaultFS", "hdfs://tagman");
         conf.set("mapred.job.tracker", "am0hd01.hosts.tagman.com:8021");
         conf.set("dfs.client.failover.proxy.provider.tagman",
@@ -49,11 +50,11 @@ public class MainClass {
 
         LOGGER.info("Rebuilding clusters from {}", input);
 
-        long canopies = ClusterDriver.buildClusters(conf, input, output, 28,
+        long canopies = ClusterDriver.buildClusters(conf, input, output, 14,
                 measure, 0.33f, 0.3f, 10);
         if (canopies > 0) {
             LOGGER.info("Clustering data from {}", input);
-            ClusterDriver.clusterData(conf, input, output, measure, 0.33f, 28);
+            ClusterDriver.clusterData(conf, input, output, measure, 0.33f, 14);
 
         }
     }

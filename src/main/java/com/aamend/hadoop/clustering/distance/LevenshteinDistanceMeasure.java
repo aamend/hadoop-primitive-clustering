@@ -1,6 +1,6 @@
 package com.aamend.hadoop.clustering.distance;
 
-import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Canopy;
 import org.apache.hadoop.conf.Configuration;
 
 import java.util.Arrays;
@@ -124,7 +124,6 @@ public class LevenshteinDistanceMeasure
     }
 
     public void configure(Configuration conf) {
-        maxLevDistance =
-                conf.getFloat(CanopyConfigKeys.MAX_DISTANCE, 1.0f);
+        maxLevDistance = conf.getFloat(Canopy.MAX_DISTANCE, 1.0f);
     }
 }

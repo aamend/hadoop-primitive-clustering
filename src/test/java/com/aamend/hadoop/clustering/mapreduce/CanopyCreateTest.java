@@ -1,6 +1,6 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
-import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.distance.LevenshteinDistanceMeasure;
 import junit.framework.Assert;
@@ -53,10 +53,10 @@ public class CanopyCreateTest {
     public void createCanopies() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(CanopyConfigKeys.CLUSTER_MEASURE,
+        conf.set(Canopy.CLUSTER_MEASURE,
                 measure.getClass().getName());
-        conf.setFloat(CanopyConfigKeys.CLUSTER_T1, 0.1f);
-        conf.setFloat(CanopyConfigKeys.CLUSTER_T2, 0.08f);
+        conf.setFloat(Canopy.CLUSTER_T1, 0.1f);
+        conf.setFloat(Canopy.CLUSTER_T2, 0.08f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =
@@ -78,10 +78,10 @@ public class CanopyCreateTest {
     public void createCanopiesLargerT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(CanopyConfigKeys.CLUSTER_MEASURE,
+        conf.set(Canopy.CLUSTER_MEASURE,
                 measure.getClass().getName());
-        conf.setFloat(CanopyConfigKeys.CLUSTER_T1, 0.25f);
-        conf.setFloat(CanopyConfigKeys.CLUSTER_T2, 0.15f);
+        conf.setFloat(Canopy.CLUSTER_T1, 0.25f);
+        conf.setFloat(Canopy.CLUSTER_T2, 0.15f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =
@@ -103,10 +103,10 @@ public class CanopyCreateTest {
     public void createCanopiesLargestT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(CanopyConfigKeys.CLUSTER_MEASURE,
+        conf.set(Canopy.CLUSTER_MEASURE,
                 measure.getClass().getName());
-        conf.setFloat(CanopyConfigKeys.CLUSTER_T1, 1.0f);
-        conf.setFloat(CanopyConfigKeys.CLUSTER_T2, 0.95f);
+        conf.setFloat(Canopy.CLUSTER_T1, 1.0f);
+        conf.setFloat(Canopy.CLUSTER_T2, 0.95f);
 
         Set<String> clusters = new HashSet<String>();
         List<Pair<Text, ArrayPrimitiveWritable>> results =

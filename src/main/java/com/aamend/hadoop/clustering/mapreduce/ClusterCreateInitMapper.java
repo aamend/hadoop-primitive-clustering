@@ -5,6 +5,7 @@ import com.aamend.hadoop.clustering.cluster.Cluster;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
@@ -14,7 +15,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
+public class ClusterCreateInitMapper extends
+        Mapper<Text, ArrayPrimitiveWritable, Text, Cluster> {
 
     private float t1;
     private float t2;
@@ -23,11 +25,11 @@ public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
     private Collection<Cluster> canopies = Lists.newArrayList();
 
     private static final Text KEY = new Text();
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterCreateMapper.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ClusterCreateInitMapper.class);
 
     @Override
-    protected void setup(Context context)
-            throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException, InterruptedException {
 
         // Retrieve params fom configuration
         Configuration conf = context.getConfiguration();
@@ -37,16 +39,16 @@ public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
     }
 
     @Override
-    protected void map(Text key, Cluster value, Context context) throws IOException, InterruptedException {
+    protected void map(Text key, ArrayPrimitiveWritable value, Context context) throws IOException, InterruptedException {
 
-        int[] point = value.getCenter();
+        int[] point = (int[]) value.get();
         boolean stronglyBound = false;
         for (Cluster canopy : canopies) {
             double dist = measure.distance(canopy.getCenter(), point);
             if (dist < t1) {
-                canopy.observe(1L);
+                canopy.observe(1);
                 KEY.set(Arrays.toString(canopy.getCenter()));
-                context.write(KEY, value);
+                context.write(KEY, canopy);
             }
             stronglyBound = stronglyBound || dist < t2;
         }
@@ -55,7 +57,7 @@ public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
             Cluster canopy = new Canopy(nextCanopyId, point, measure);
             canopies.add(canopy);
             KEY.set(Arrays.toString(canopy.getCenter()));
-            context.write(KEY, value);
+            context.write(KEY, canopy);
         }
 
     }
