@@ -1,6 +1,7 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.Cluster;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.distance.LevenshteinDistanceMeasure;
 import junit.framework.Assert;
@@ -32,7 +33,7 @@ public class CanopyCreateTest {
             LoggerFactory.getLogger(CanopyCreateTest.class);
 
     private
-    MapReduceDriver<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable>
+    MapReduceDriver<Text, ArrayPrimitiveWritable, Text, Cluster, Text, Cluster>
             mapReduceDriver;
     private DistanceMeasure measure;
 
@@ -40,7 +41,7 @@ public class CanopyCreateTest {
     public void setUp() throws IOException {
 
         measure = new LevenshteinDistanceMeasure();
-        ClusterCreateMapper mapper = new ClusterCreateMapper();
+        ClusterCreateInitMapper mapper = new ClusterCreateInitMapper();
         ClusterCreateReducer reducer = new ClusterCreateReducer();
         mapReduceDriver = MapReduceDriver.newMapReduceDriver();
         mapReduceDriver.setMapper(mapper);
@@ -59,10 +60,10 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T2, 0.08f);
 
         Set<String> clusters = new HashSet<String>();
-        List<Pair<Text, ArrayPrimitiveWritable>> results =
+        List<Pair<Text, Cluster>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, ArrayPrimitiveWritable> result : results) {
-            int[] ap = (int[]) result.getSecond().get();
+        for (Pair<Text, Cluster> result : results) {
+            int[] ap = (int[]) result.getSecond().getCenter();
             String str = Arrays.toString(ap);
             if (!clusters.contains(str)) {
                 clusters.add(str);
@@ -84,10 +85,10 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T2, 0.15f);
 
         Set<String> clusters = new HashSet<String>();
-        List<Pair<Text, ArrayPrimitiveWritable>> results =
+        List<Pair<Text, Cluster>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, ArrayPrimitiveWritable> result : results) {
-            int[] ap = (int[]) result.getSecond().get();
+        for (Pair<Text, Cluster> result : results) {
+            int[] ap = (int[]) result.getSecond().getCenter();
             String str = Arrays.toString(ap);
             if (!clusters.contains(str)) {
                 clusters.add(str);
@@ -109,10 +110,10 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T2, 0.95f);
 
         Set<String> clusters = new HashSet<String>();
-        List<Pair<Text, ArrayPrimitiveWritable>> results =
+        List<Pair<Text, Cluster>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, ArrayPrimitiveWritable> result : results) {
-            int[] ap = (int[]) result.getSecond().get();
+        for (Pair<Text, Cluster> result : results) {
+            int[] ap = (int[]) result.getSecond().getCenter();
             String str = Arrays.toString(ap);
             if (!clusters.contains(str)) {
                 clusters.add(str);

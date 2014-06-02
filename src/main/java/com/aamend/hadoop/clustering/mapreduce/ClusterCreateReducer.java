@@ -1,6 +1,8 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
+import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.cluster.Cluster;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
@@ -17,6 +19,16 @@ public class ClusterCreateReducer extends Reducer<Text, Cluster, Text, Cluster> 
     public static final String COUNTER = "data";
     public static final String COUNTER_CANOPY = "canopies";
 
+    private boolean lastIteration;
+    private long minObservations;
+
+    @Override
+    protected void setup(Context context){
+        Configuration conf = context.getConfiguration();
+        minObservations = conf.getLong(Canopy.MIN_OBSERVATIONS, 1);
+        lastIteration = conf.getBoolean(Canopy.LAST_ITERATION, false);
+    }
+
     @Override
     protected void reduce(Text key, Iterable<Cluster> values, Context context)
             throws IOException, InterruptedException {
@@ -31,6 +43,12 @@ public class ClusterCreateReducer extends Reducer<Text, Cluster, Text, Cluster> 
                 cluster.observe(value.getObservations());
             }
             points.add(value.getCenter());
+        }
+
+        if(lastIteration){
+            if(points.size() < minObservations){
+                LOGGER.warn("Cluster {} rejected, not enough data points", cluster.asFormattedString());
+            }
         }
 
         LOGGER.info("Minimizing distance across {} data points in cluster {}", points.size(), key.toString());

@@ -68,10 +68,9 @@ public class ClusterDataMapper extends
             }
         }
 
-        if (clusters.size() == 0) {
+        if (clusters.size() == 0)
             throw new IOException(
                     "Could not find / load any canopy. Check distributed cache");
-        }
 
         LOGGER.info("Loaded {} clusters", clusters.size());
     }

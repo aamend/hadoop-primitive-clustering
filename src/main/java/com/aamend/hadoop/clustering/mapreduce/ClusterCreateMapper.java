@@ -44,7 +44,7 @@ public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
         for (Cluster canopy : canopies) {
             double dist = measure.distance(canopy.getCenter(), point);
             if (dist < t1) {
-                canopy.observe(1L);
+                canopy.observe(1);
                 KEY.set(Arrays.toString(canopy.getCenter()));
                 context.write(KEY, value);
             }

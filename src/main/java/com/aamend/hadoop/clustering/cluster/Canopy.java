@@ -24,6 +24,7 @@ public class Canopy extends ArrayPrimitiveWritable implements Cluster, Writable 
     public static final String CLUSTER_T2 = "cluster.t2";
     public static final String CLUSTER_MEASURE = "cluster.measure";
     public static final String MAX_DISTANCE = "cluster.max.measure";
+    public static final String LAST_ITERATION = "cluster.last.iteration";
 
     private int id;
     private int[] center;
@@ -105,9 +106,9 @@ public class Canopy extends ArrayPrimitiveWritable implements Cluster, Writable 
 
     @Override
     public String asFormattedString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{id:").append(id);
-        sb.append(",n:").append(observations);
+        StringBuilder sb = new StringBuilder(50);
+        sb.append("C-").append(id);
+        sb.append(" {n:").append(observations);
         sb.append(",c:").append(Arrays.toString(center));
         sb.append("}");
         return sb.toString();

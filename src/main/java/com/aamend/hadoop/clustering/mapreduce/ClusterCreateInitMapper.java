@@ -55,6 +55,7 @@ public class ClusterCreateInitMapper extends
         if (!stronglyBound) {
             nextCanopyId++;
             Cluster canopy = new Canopy(nextCanopyId, point, measure);
+            LOGGER.info("Creating a new Cluster {}", canopy.asFormattedString());
             canopies.add(canopy);
             KEY.set(Arrays.toString(canopy.getCenter()));
             context.write(KEY, canopy);
