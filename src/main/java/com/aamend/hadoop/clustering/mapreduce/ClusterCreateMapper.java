@@ -2,6 +2,7 @@ package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.cluster.Cluster;
+import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
@@ -14,7 +15,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
+public class ClusterCreateMapper extends Mapper<Text, ClusterWritable, Text, ClusterWritable> {
 
     private float t1;
     private float t2;
@@ -37,23 +38,36 @@ public class ClusterCreateMapper extends Mapper<Text, Cluster, Text, Cluster> {
     }
 
     @Override
-    protected void map(Text key, Cluster value, Context context) throws IOException, InterruptedException {
+    protected void map(Text key, ClusterWritable value, Context context) throws IOException, InterruptedException {
 
-        int[] point = value.getCenter();
+        Cluster cluster = value.get();
+        int[] point = cluster.getCenter();
         boolean stronglyBound = false;
         for (Cluster canopy : canopies) {
             double dist = measure.distance(canopy.getCenter(), point);
             if (dist < t1) {
-                canopy.observe(1);
                 KEY.set(Arrays.toString(canopy.getCenter()));
-                context.write(KEY, value);
+                Cluster newCluster;
+                if(dist < t2){
+                    newCluster = new Canopy(canopy.getId(), point, value.get().getNum());
+                    LOGGER.debug("Adding (T2) {} to Cluster {}", Arrays.toString(point),
+                            Arrays.toString(canopy.getCenter()));
+                } else {
+                    newCluster = new Canopy(canopy.getId(), point, 0L);
+                    LOGGER.debug("Adding (T1) {} to Cluster {}", Arrays.toString(point),
+                            Arrays.toString(canopy.getCenter()));
+                }
+
+                context.write(KEY, new ClusterWritable(newCluster));
             }
+
             stronglyBound = stronglyBound || dist < t2;
         }
         if (!stronglyBound) {
             nextCanopyId++;
-            Cluster canopy = new Canopy(nextCanopyId, point, measure);
+            Cluster canopy = new Canopy(nextCanopyId, point, value.get().getNum());
             canopies.add(canopy);
+            LOGGER.debug("Creating a new Cluster {}", canopy.asFormattedString());
             KEY.set(Arrays.toString(canopy.getCenter()));
             context.write(KEY, value);
         }

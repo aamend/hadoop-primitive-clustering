@@ -54,7 +54,7 @@ public class MainClass {
                 measure, 0.33f, 0.3f, 10);
         if (canopies > 0) {
             LOGGER.info("Clustering data from {}", input);
-            ClusterDriver.clusterData(conf, input, output, measure, 0.33f, 14);
+            //ClusterDriver.clusterData(conf, input, output, measure, 0.33f, 14);
 
         }
     }

@@ -2,6 +2,8 @@ package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.cluster.Cluster;
+import com.aamend.hadoop.clustering.cluster.ClusterWritable;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -12,49 +14,62 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClusterCreateReducer extends Reducer<Text, Cluster, Text, Cluster> {
+public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, ClusterWritable> {
 
     private static final Text KEY = new Text("canopies");
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterCreateReducer.class);
     public static final String COUNTER = "data";
     public static final String COUNTER_CANOPY = "canopies";
+    public static final String COUNTER_REJECTED_CANOPY = "canopies.rejected";
 
     private boolean lastIteration;
     private long minObservations;
+    private DistanceMeasure measure;
+    private int nextCanopyId;
 
     @Override
-    protected void setup(Context context){
+    protected void setup(Context context) throws IOException {
         Configuration conf = context.getConfiguration();
         minObservations = conf.getLong(Canopy.MIN_OBSERVATIONS, 1);
         lastIteration = conf.getBoolean(Canopy.LAST_ITERATION, false);
+        measure = Canopy.configureMeasure(conf);
     }
 
     @Override
-    protected void reduce(Text key, Iterable<Cluster> values, Context context)
+    protected void reduce(Text key, Iterable<ClusterWritable> values, Context context)
             throws IOException, InterruptedException {
 
         // Try to find a center that could minimize all data points
         List<int[]> points = new ArrayList<int[]>();
-        Cluster cluster = null;
-        for (Cluster value : values) {
-            if (cluster == null) {
-                cluster = value;
+
+        long obs = 0L;
+        Cluster clusterTemplate = null;
+        for (ClusterWritable value : values) {
+            if(clusterTemplate == null){
+                clusterTemplate = value.get();
             } else {
-                cluster.observe(value.getObservations());
+                obs += value.get().getNum();
+                points.add(value.get().getCenter());
             }
-            points.add(value.getCenter());
         }
+
+        // Increment number of observations for this cluster
+        clusterTemplate.observe(obs);
 
         if(lastIteration){
-            if(points.size() < minObservations){
-                LOGGER.warn("Cluster {} rejected, not enough data points", cluster.asFormattedString());
+            if(clusterTemplate.getNum() < minObservations){
+                context.getCounter(COUNTER, COUNTER_REJECTED_CANOPY).increment(1L);
+                return;
             }
         }
 
-        LOGGER.info("Minimizing distance across {} data points in cluster {}", points.size(), key.toString());
-        cluster.computeCenter(points);
+        LOGGER.info("Minimizing distance across {} data points in cluster {}",
+                points.size(), clusterTemplate.asFormattedString());
+        nextCanopyId++;
+        clusterTemplate.computeCenter(points, measure);
+        Cluster newCluster = new Canopy(nextCanopyId, clusterTemplate.getCenter(), obs);
         context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
-        context.write(KEY, cluster);
+        context.write(KEY, new ClusterWritable(newCluster));
 
     }
 

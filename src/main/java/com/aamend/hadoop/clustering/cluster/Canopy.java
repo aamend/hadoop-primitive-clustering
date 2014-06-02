@@ -3,11 +3,7 @@ package com.aamend.hadoop.clustering.cluster;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
-import org.apache.hadoop.io.Writable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +12,7 @@ import java.util.List;
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public class Canopy extends ArrayPrimitiveWritable implements Cluster, Writable {
+public class Canopy implements Cluster {
 
     public static final String MIN_OBSERVATIONS = "min.cluster.observations";
     public static final String MIN_SIMILARITY = "min.cluster.similarity";
@@ -27,36 +23,33 @@ public class Canopy extends ArrayPrimitiveWritable implements Cluster, Writable 
     public static final String LAST_ITERATION = "cluster.last.iteration";
 
     private int id;
+    private long num;
     private int[] center;
-    private long observations;
-    private DistanceMeasure measure;
 
-    public Canopy(int id, int[] center, DistanceMeasure measure) {
-        observations = 1;
+    public Canopy(int id, int[] center) {
+        num = 1;
         this.id = id;
         this.center = center;
-        this.measure = measure;
     }
 
-    public Canopy(int id, int[] center, long observations, DistanceMeasure measure) {
+    public Canopy(int id, int[] center, long num) {
         this.id = id;
         this.center = center;
-        this.observations = observations;
-        this.measure = measure;
+        this.num = num;
     }
 
     @Override
-    public double pdf(int[] x) {
+    public double pdf(int[] x, DistanceMeasure measure) {
         return 1 - measure.distance(center, x);
     }
 
     @Override
     public void observe(long number) {
-        observations += number;
+        num += number;
     }
 
     @Override
-    public void computeCenter(List<int[]> centers) {
+    public void computeCenter(List<int[]> centers, DistanceMeasure measure) {
 
         if(centers.size() <= 1){
             return;
@@ -100,18 +93,18 @@ public class Canopy extends ArrayPrimitiveWritable implements Cluster, Writable 
     }
 
     @Override
-    public long getObservations() {
-        return observations;
+    public long getNum() {
+        return num;
     }
 
     @Override
     public String asFormattedString() {
         StringBuilder sb = new StringBuilder(50);
-        sb.append("C-").append(id);
-        sb.append(" {n:").append(observations);
-        sb.append(",c:").append(Arrays.toString(center));
-        sb.append("}");
-        return sb.toString();
+        return sb.append("C-").append(id)
+                .append(" {n:").append(num)
+                .append(",c:").append(Arrays.toString(center))
+                .append("}")
+                .toString();
     }
 
     public static DistanceMeasure configureMeasure(Configuration conf) throws IOException {
@@ -141,34 +134,4 @@ public class Canopy extends ArrayPrimitiveWritable implements Cluster, Writable 
         return measure;
     }
 
-    @Override
-    public void write(DataOutput out) throws IOException {
-        out.writeInt(id);
-        out.writeLong(observations);
-        out.writeUTF(measure.getClass().getName());
-        super.write(out);
-    }
-
-    @Override
-    public void readFields(DataInput in) throws IOException {
-
-        id = in.readInt();
-        observations = in.readLong();
-        String dm = in.readUTF();
-        try {
-            Class<?> clazz = Class.forName(dm);
-            Object obj = clazz.newInstance();
-            measure = (DistanceMeasure) obj;
-        } catch (ClassNotFoundException e) {
-            throw new IOException(e);
-        } catch (InstantiationException e) {
-            throw new IOException(e);
-        } catch (IllegalAccessException e) {
-            throw new IOException(e);
-        }
-
-        ArrayPrimitiveWritable awp = new ArrayPrimitiveWritable();
-        awp.readFields(in);
-        center = (int[]) awp.get();
-    }
 }

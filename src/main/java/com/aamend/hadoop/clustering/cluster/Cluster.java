@@ -1,5 +1,7 @@
 package com.aamend.hadoop.clustering.cluster;
 
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
+
 import java.util.List;
 
 /**
@@ -17,17 +19,17 @@ public interface Cluster {
     // final directory for output of clusters per iteration
     String CLUSTERS_FINAL_DIR = "clusters-final";
 
-    double pdf(int[] x);
+    double pdf(int[] x, DistanceMeasure measure);
 
     void observe(long number);
 
-    void computeCenter(List<int[]> centers);
+    void computeCenter(List<int[]> centers, DistanceMeasure measure);
 
     int getId();
 
     int[] getCenter();
 
-    long getObservations();
+    long getNum();
 
     String asFormattedString();
 

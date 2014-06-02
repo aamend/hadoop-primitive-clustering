@@ -60,7 +60,7 @@ public class ClusterDataMapper extends
                 int i = 0;
                 while (reader.next(key, value)) {
                     i++;
-                    Cluster cluster = new Canopy(i, (int[]) value.get(), measure);
+                    Cluster cluster = new Canopy(i, (int[]) value.get());
                     clusters.add(cluster);
                 }
 
@@ -83,7 +83,7 @@ public class ClusterDataMapper extends
         double[] pdf = new double[clusters.size()];
         for (int i = 0; i < clusters.size(); i++) {
             Cluster cluster = clusters.get(i);
-            pdf[i] = cluster.pdf((int[]) value.get());
+            pdf[i] = cluster.pdf((int[]) value.get(), measure);
         }
 
         // Get the cluster with smallest distance to that point

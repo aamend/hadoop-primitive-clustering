@@ -2,12 +2,14 @@ package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.cluster.Cluster;
+import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.distance.LevenshteinDistanceMeasure;
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.types.Pair;
 import org.junit.Before;
@@ -33,7 +35,7 @@ public class CanopyCreateTest {
             LoggerFactory.getLogger(CanopyCreateTest.class);
 
     private
-    MapReduceDriver<Text, ArrayPrimitiveWritable, Text, Cluster, Text, Cluster>
+    MapReduceDriver<WritableComparable, ArrayPrimitiveWritable, Text, ClusterWritable, Text, ClusterWritable>
             mapReduceDriver;
     private DistanceMeasure measure;
 
@@ -59,20 +61,15 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T1, 0.1f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.08f);
 
-        Set<String> clusters = new HashSet<String>();
-        List<Pair<Text, Cluster>> results =
+        List<Pair<Text, ClusterWritable>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, Cluster> result : results) {
-            int[] ap = (int[]) result.getSecond().getCenter();
-            String str = Arrays.toString(ap);
-            if (!clusters.contains(str)) {
-                clusters.add(str);
-                LOGGER.info("Cluster center : {}", str);
-            }
+        for (Pair<Text, ClusterWritable> result : results) {
+            Cluster ap = result.getSecond().get();
+            LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
         Assert.assertEquals("8 clusters should have been created", 8,
-                clusters.size());
-        LOGGER.info("{} clusters have been created", clusters.size());
+                results.size());
+        LOGGER.info("{} clusters have been created", results.size());
     }
 
     @Test
@@ -84,20 +81,15 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T1, 0.25f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.15f);
 
-        Set<String> clusters = new HashSet<String>();
-        List<Pair<Text, Cluster>> results =
+        List<Pair<Text, ClusterWritable>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, Cluster> result : results) {
-            int[] ap = (int[]) result.getSecond().getCenter();
-            String str = Arrays.toString(ap);
-            if (!clusters.contains(str)) {
-                clusters.add(str);
-                LOGGER.info("Cluster center : {}", str);
-            }
+        for (Pair<Text, ClusterWritable> result : results) {
+            Cluster ap = result.getSecond().get();
+            LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
-        Assert.assertEquals("4 cluster should have been created", 4,
-                clusters.size());
-        LOGGER.info("{} clusters have been created", clusters.size());
+        Assert.assertEquals("4 clusters should have been created", 4,
+                results.size());
+        LOGGER.info("{} clusters have been created", results.size());
     }
 
     @Test
@@ -109,29 +101,24 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T1, 1.0f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.95f);
 
-        Set<String> clusters = new HashSet<String>();
-        List<Pair<Text, Cluster>> results =
+        List<Pair<Text, ClusterWritable>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, Cluster> result : results) {
-            int[] ap = (int[]) result.getSecond().getCenter();
-            String str = Arrays.toString(ap);
-            if (!clusters.contains(str)) {
-                clusters.add(str);
-                LOGGER.info("Cluster center : {}", str);
-            }
+        for (Pair<Text, ClusterWritable> result : results) {
+            Cluster ap = result.getSecond().get();
+            LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
-        Assert.assertEquals("1 cluster should have been created", 1,
-                clusters.size());
-        LOGGER.info("{} clusters have been created", clusters.size());
+        Assert.assertEquals("1 clusters should have been created", 1,
+                results.size());
+        LOGGER.info("{} clusters have been created", results.size());
     }
 
-    private List<Pair<Text, ArrayPrimitiveWritable>> getInputList()
+    private List<Pair<WritableComparable, ArrayPrimitiveWritable>> getInputList()
             throws
             FileNotFoundException {
 
-        List<Pair<Text, ArrayPrimitiveWritable>>
+        List<Pair<WritableComparable, ArrayPrimitiveWritable>>
                 inputList =
-                new ArrayList<Pair<Text, ArrayPrimitiveWritable>>();
+                new ArrayList<Pair<WritableComparable, ArrayPrimitiveWritable>>();
         String inputUrl = getClass().getResource("canopies.input").getFile();
         File inputFile = new File(inputUrl);
         Scanner in = new Scanner(inputFile);
@@ -145,8 +132,8 @@ public class CanopyCreateTest {
                 i++;
             }
 
-            Pair<Text, ArrayPrimitiveWritable> inputPair =
-                    new Pair<Text, ArrayPrimitiveWritable>(
+            Pair<WritableComparable, ArrayPrimitiveWritable> inputPair =
+                    new Pair<WritableComparable, ArrayPrimitiveWritable>(
                             new Text("dummy"),
                             new ArrayPrimitiveWritable(ap));
             inputList.add(inputPair);

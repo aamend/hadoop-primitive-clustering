@@ -2,6 +2,7 @@ package com.aamend.hadoop.clustering.job;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
 import com.aamend.hadoop.clustering.cluster.Cluster;
+import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.mapreduce.*;
 import org.apache.hadoop.conf.Configuration;
@@ -61,6 +62,7 @@ public class ClusterDriver {
         int itTotal = (int) num;
         int it = 0;
         long canopies = 0;
+        long rejectedCanopies = 0;
 
         // Compute how {T1,T2} will be increased after each iteration
         float minT1 = t1 * 0.5f;
@@ -69,9 +71,6 @@ public class ClusterDriver {
         float itT2Increase = minT2 / (itTotal - 1);
         float itT1 = minT1;
         float itT2 = minT2;
-
-        // An additional job is required to filter out clusters
-        itTotal++;
 
         // Prepare input, output and temporary path
         Path finPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
@@ -120,6 +119,10 @@ public class ClusterDriver {
             conf.setBoolean(Canopy.LAST_ITERATION, lastIteration);
             conf.setLong(Canopy.MIN_OBSERVATIONS, cf);
 
+            if(lastIteration){
+                itOPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
+            }
+
             String name = "Create clusters - " + it + "/" + itTotal;
             LOGGER.info("************************************");
             LOGGER.info("Job      : {}", name);
@@ -144,9 +147,9 @@ public class ClusterDriver {
             createJob.setJarByClass(ClusterDriver.class);
             createJob.setNumReduceTasks(reducers);
             createJob.setMapOutputKeyClass(Text.class);
-            createJob.setMapOutputValueClass(Cluster.class);
+            createJob.setMapOutputValueClass(ClusterWritable.class);
             createJob.setOutputKeyClass(Text.class);
-            createJob.setOutputValueClass(Cluster.class);
+            createJob.setOutputValueClass(ClusterWritable.class);
             createJob.setInputFormatClass(SequenceFileInputFormat.class);
             createJob.setOutputFormatClass(SequenceFileOutputFormat.class);
             SequenceFileInputFormat.addInputPath(createJob, itIPath);
@@ -162,6 +165,11 @@ public class ClusterDriver {
             canopies = createJob.getCounters().findCounter(
                     ClusterCreateReducer.COUNTER,
                     ClusterCreateReducer.COUNTER_CANOPY).getValue();
+
+            // Retrieve counters
+            rejectedCanopies = createJob.getCounters().findCounter(
+                    ClusterCreateReducer.COUNTER,
+                    ClusterCreateReducer.COUNTER_REJECTED_CANOPY).getValue();
 
             // Make sure we have at least one canopy created
             if (canopies == 0) {
@@ -181,11 +189,7 @@ public class ClusterDriver {
 
             // Output of previous job will be input as next one
             itIPath = itOPath;
-            if(lastIteration){
-                itOPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
-            } else {
-                itOPath = new Path(output, Cluster.CLUSTERS_TMP_DIR + it);
-            }
+            itOPath = new Path(output, Cluster.CLUSTERS_TMP_DIR + it);
         }
 
         // Make sure we have at least one canopy created
@@ -196,7 +200,8 @@ public class ClusterDriver {
                             "and / or your {T1,T2} parameters");
             return 0;
         } else {
-            LOGGER.info("{} canopies available on {}", canopies, finPath);
+            LOGGER.info("{} canopies available on {}. " +
+                    rejectedCanopies + " canopies rejected", canopies, finPath);
         }
 
         return canopies;
