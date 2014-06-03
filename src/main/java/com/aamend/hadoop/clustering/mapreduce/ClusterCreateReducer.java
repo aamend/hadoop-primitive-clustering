@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, ClusterWritable> {
@@ -63,11 +64,12 @@ public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, C
             }
         }
 
-        LOGGER.info("Minimizing distance across {} data points in cluster {}",
-                points.size(), clusterTemplate.asFormattedString());
-        nextCanopyId++;
+        LOGGER.info("Minimizing distance across {} data points in cluster center {}",
+                points.size(), Arrays.toString(clusterTemplate.getCenter()));
+
         clusterTemplate.computeCenter(points, measure);
-        Cluster newCluster = new Canopy(nextCanopyId, clusterTemplate.getCenter(), obs);
+        nextCanopyId++;
+        Cluster newCluster = new Canopy(nextCanopyId, clusterTemplate.getCenter(), clusterTemplate.getNum());
         context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
         context.write(KEY, new ClusterWritable(newCluster));
 
