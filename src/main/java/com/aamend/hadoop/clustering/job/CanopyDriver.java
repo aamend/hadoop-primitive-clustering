@@ -1,8 +1,8 @@
 package com.aamend.hadoop.clustering.job;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyWritable;
 import com.aamend.hadoop.clustering.cluster.Cluster;
-import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.mapreduce.*;
 import org.apache.hadoop.conf.Configuration;
@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
-public class ClusterDriver {
+public class CanopyDriver {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(ClusterDriver.class);
+            LoggerFactory.getLogger(CanopyDriver.class);
 
     /**
      * Build a directory of Canopy clusters from the input arguments.
@@ -138,18 +138,18 @@ public class ClusterDriver {
             // Prepare job
             Job createJob = new Job(conf, name);
             if(it == 1){
-                createJob.setMapperClass(ClusterCreateInitMapper.class);
+                createJob.setMapperClass(CanopyCreateInitMapper.class);
             } else {
-                createJob.setMapperClass(ClusterCreateMapper.class);
+                createJob.setMapperClass(CanopyCreateMapper.class);
             }
 
-            createJob.setReducerClass(ClusterCreateReducer.class);
-            createJob.setJarByClass(ClusterDriver.class);
+            createJob.setReducerClass(CanopyCreateReducer.class);
+            createJob.setJarByClass(CanopyDriver.class);
             createJob.setNumReduceTasks(reducers);
             createJob.setMapOutputKeyClass(Text.class);
-            createJob.setMapOutputValueClass(ClusterWritable.class);
+            createJob.setMapOutputValueClass(CanopyWritable.class);
             createJob.setOutputKeyClass(Text.class);
-            createJob.setOutputValueClass(ClusterWritable.class);
+            createJob.setOutputValueClass(CanopyWritable.class);
             createJob.setInputFormatClass(SequenceFileInputFormat.class);
             createJob.setOutputFormatClass(SequenceFileOutputFormat.class);
             SequenceFileInputFormat.addInputPath(createJob, itIPath);
@@ -163,13 +163,13 @@ public class ClusterDriver {
 
             // Retrieve counters
             canopies = createJob.getCounters().findCounter(
-                    ClusterCreateReducer.COUNTER,
-                    ClusterCreateReducer.COUNTER_CANOPY).getValue();
+                    CanopyCreateReducer.COUNTER,
+                    CanopyCreateReducer.COUNTER_CANOPY).getValue();
 
             // Retrieve counters
             rejectedCanopies = createJob.getCounters().findCounter(
-                    ClusterCreateReducer.COUNTER,
-                    ClusterCreateReducer.COUNTER_REJECTED_CANOPY).getValue();
+                    CanopyCreateReducer.COUNTER,
+                    CanopyCreateReducer.COUNTER_REJECTED_CANOPY).getValue();
 
             // Make sure we have at least one canopy created
             if (canopies == 0) {
@@ -284,7 +284,7 @@ public class ClusterDriver {
         Job clusterJob = new Job(conf, name);
         clusterJob.setMapperClass(ClusterDataMapper.class);
         clusterJob.setReducerClass(ClusterDataReducer.class);
-        clusterJob.setJarByClass(ClusterDriver.class);
+        clusterJob.setJarByClass(CanopyDriver.class);
         clusterJob.setNumReduceTasks(reducers);
         clusterJob.setMapOutputKeyClass(Text.class);
         clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);

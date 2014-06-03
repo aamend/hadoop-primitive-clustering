@@ -1,14 +1,12 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyWritable;
 import com.aamend.hadoop.clustering.cluster.Cluster;
-import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +15,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class ClusterCreateInitMapper extends
-        Mapper<WritableComparable, ArrayPrimitiveWritable, Text, ClusterWritable> {
+public class CanopyCreateMapper extends Mapper<Text, CanopyWritable, Text, CanopyWritable> {
 
     private float t1;
     private float t2;
@@ -27,11 +24,11 @@ public class ClusterCreateInitMapper extends
     private Collection<Cluster> canopies = Lists.newArrayList();
 
     private static final Text KEY = new Text();
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(ClusterCreateInitMapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CanopyCreateMapper.class);
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(Context context)
+            throws IOException, InterruptedException {
 
         // Retrieve params fom configuration
         Configuration conf = context.getConfiguration();
@@ -41,33 +38,38 @@ public class ClusterCreateInitMapper extends
     }
 
     @Override
-    protected void map(WritableComparable key, ArrayPrimitiveWritable value, Context context) throws IOException, InterruptedException {
+    protected void map(Text key, CanopyWritable value, Context context) throws IOException, InterruptedException {
 
-        int[] point = (int[]) value.get();
+        Cluster cluster = value.get();
+        int[] point = cluster.getCenter();
         boolean stronglyBound = false;
         for (Cluster canopy : canopies) {
             double dist = measure.distance(canopy.getCenter(), point);
             if (dist < t1) {
                 KEY.set(Arrays.toString(canopy.getCenter()));
+                Cluster newCluster;
                 if(dist < t2){
-                    LOGGER.debug("Adding (T2) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
+                    newCluster = new Canopy(canopy.getId(), point, value.get().getNum());
+                    LOGGER.debug("Adding (T2) {} to Cluster {}", Arrays.toString(point),
                             Arrays.toString(canopy.getCenter()));
                 } else {
-
-                    LOGGER.debug("Adding (T1) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
+                    newCluster = new Canopy(canopy.getId(), point, 0L);
+                    LOGGER.debug("Adding (T1) {} to Cluster {}", Arrays.toString(point),
                             Arrays.toString(canopy.getCenter()));
                 }
-                context.write(KEY, new ClusterWritable(new Canopy(canopy.getId(), point)));
+
+                context.write(KEY, new CanopyWritable(newCluster));
             }
+
             stronglyBound = stronglyBound || dist < t2;
         }
         if (!stronglyBound) {
             nextCanopyId++;
-            Cluster canopy = new Canopy(nextCanopyId, point, 1L);
-            LOGGER.debug("Creating a new Cluster {}", canopy.asFormattedString());
+            Cluster canopy = new Canopy(nextCanopyId, point, value.get().getNum());
             canopies.add(canopy);
+            LOGGER.debug("Creating a new Cluster {}", canopy.asFormattedString());
             KEY.set(Arrays.toString(canopy.getCenter()));
-            context.write(KEY, new ClusterWritable(canopy));
+            context.write(KEY, value);
         }
 
     }

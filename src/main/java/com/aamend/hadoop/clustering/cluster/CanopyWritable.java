@@ -9,7 +9,7 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClusterWritable implements Writable {
+public class CanopyWritable implements Writable {
 
     private int id;
     private int[] center;
@@ -67,7 +67,7 @@ public class ClusterWritable implements Writable {
         }
     }
 
-    public ClusterWritable() {
+    public CanopyWritable() {
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ClusterWritable implements Writable {
         return cluster.asFormattedString();
     }
 
-    public ClusterWritable(Cluster cluster) {
+    public CanopyWritable(Cluster cluster) {
         set(cluster);
     }
 

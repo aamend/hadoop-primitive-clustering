@@ -1,12 +1,14 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyWritable;
 import com.aamend.hadoop.clustering.cluster.Cluster;
-import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +17,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class ClusterCreateMapper extends Mapper<Text, ClusterWritable, Text, ClusterWritable> {
+public class CanopyCreateInitMapper extends
+        Mapper<WritableComparable, ArrayPrimitiveWritable, Text, CanopyWritable> {
 
     private float t1;
     private float t2;
@@ -24,11 +27,11 @@ public class ClusterCreateMapper extends Mapper<Text, ClusterWritable, Text, Clu
     private Collection<Cluster> canopies = Lists.newArrayList();
 
     private static final Text KEY = new Text();
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterCreateMapper.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(CanopyCreateInitMapper.class);
 
     @Override
-    protected void setup(Context context)
-            throws IOException, InterruptedException {
+    protected void setup(Context context) throws IOException, InterruptedException {
 
         // Retrieve params fom configuration
         Configuration conf = context.getConfiguration();
@@ -38,10 +41,9 @@ public class ClusterCreateMapper extends Mapper<Text, ClusterWritable, Text, Clu
     }
 
     @Override
-    protected void map(Text key, ClusterWritable value, Context context) throws IOException, InterruptedException {
+    protected void map(WritableComparable key, ArrayPrimitiveWritable value, Context context) throws IOException, InterruptedException {
 
-        Cluster cluster = value.get();
-        int[] point = cluster.getCenter();
+        int[] point = (int[]) value.get();
         boolean stronglyBound = false;
         for (Cluster canopy : canopies) {
             double dist = measure.distance(canopy.getCenter(), point);
@@ -49,27 +51,25 @@ public class ClusterCreateMapper extends Mapper<Text, ClusterWritable, Text, Clu
                 KEY.set(Arrays.toString(canopy.getCenter()));
                 Cluster newCluster;
                 if(dist < t2){
-                    newCluster = new Canopy(canopy.getId(), point, value.get().getNum());
-                    LOGGER.debug("Adding (T2) {} to Cluster {}", Arrays.toString(point),
+                    newCluster = new Canopy(canopy.getId(), point, 1L);
+                    LOGGER.debug("Adding (T2) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
                             Arrays.toString(canopy.getCenter()));
                 } else {
                     newCluster = new Canopy(canopy.getId(), point, 0L);
-                    LOGGER.debug("Adding (T1) {} to Cluster {}", Arrays.toString(point),
+                    LOGGER.debug("Adding (T1) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
                             Arrays.toString(canopy.getCenter()));
                 }
-
-                context.write(KEY, new ClusterWritable(newCluster));
+                context.write(KEY, new CanopyWritable(newCluster));
             }
-
             stronglyBound = stronglyBound || dist < t2;
         }
         if (!stronglyBound) {
             nextCanopyId++;
-            Cluster canopy = new Canopy(nextCanopyId, point, value.get().getNum());
-            canopies.add(canopy);
+            Cluster canopy = new Canopy(nextCanopyId, point, 1L);
             LOGGER.debug("Creating a new Cluster {}", canopy.asFormattedString());
+            canopies.add(canopy);
             KEY.set(Arrays.toString(canopy.getCenter()));
-            context.write(KEY, value);
+            context.write(KEY, new CanopyWritable(canopy));
         }
 
     }

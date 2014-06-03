@@ -1,8 +1,8 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyWritable;
 import com.aamend.hadoop.clustering.cluster.Cluster;
-import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.aamend.hadoop.clustering.distance.LevenshteinDistanceMeasure;
 import junit.framework.Assert;
@@ -35,7 +35,7 @@ public class CanopyCreateTest {
             LoggerFactory.getLogger(CanopyCreateTest.class);
 
     private
-    MapReduceDriver<WritableComparable, ArrayPrimitiveWritable, Text, ClusterWritable, Text, ClusterWritable>
+    MapReduceDriver<WritableComparable, ArrayPrimitiveWritable, Text, CanopyWritable, Text, CanopyWritable>
             mapReduceDriver;
     private DistanceMeasure measure;
 
@@ -43,8 +43,8 @@ public class CanopyCreateTest {
     public void setUp() throws IOException {
 
         measure = new LevenshteinDistanceMeasure();
-        ClusterCreateInitMapper mapper = new ClusterCreateInitMapper();
-        ClusterCreateReducer reducer = new ClusterCreateReducer();
+        CanopyCreateInitMapper mapper = new CanopyCreateInitMapper();
+        CanopyCreateReducer reducer = new CanopyCreateReducer();
         mapReduceDriver = MapReduceDriver.newMapReduceDriver();
         mapReduceDriver.setMapper(mapper);
         mapReduceDriver.setReducer(reducer);
@@ -61,9 +61,9 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T1, 0.1f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.08f);
 
-        List<Pair<Text, ClusterWritable>> results =
+        List<Pair<Text, CanopyWritable>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, ClusterWritable> result : results) {
+        for (Pair<Text, CanopyWritable> result : results) {
             Cluster ap = result.getSecond().get();
             LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
@@ -81,9 +81,9 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T1, 0.25f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.15f);
 
-        List<Pair<Text, ClusterWritable>> results =
+        List<Pair<Text, CanopyWritable>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, ClusterWritable> result : results) {
+        for (Pair<Text, CanopyWritable> result : results) {
             Cluster ap = result.getSecond().get();
             LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
@@ -101,9 +101,9 @@ public class CanopyCreateTest {
         conf.setFloat(Canopy.CLUSTER_T1, 1.0f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.95f);
 
-        List<Pair<Text, ClusterWritable>> results =
+        List<Pair<Text, CanopyWritable>> results =
                 mapReduceDriver.run();
-        for (Pair<Text, ClusterWritable> result : results) {
+        for (Pair<Text, CanopyWritable> result : results) {
             Cluster ap = result.getSecond().get();
             LOGGER.info("Cluster : {}", ap.asFormattedString());
         }

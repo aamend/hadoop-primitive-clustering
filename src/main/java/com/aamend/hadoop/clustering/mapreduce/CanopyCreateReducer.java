@@ -1,8 +1,8 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyWritable;
 import com.aamend.hadoop.clustering.cluster.Cluster;
-import com.aamend.hadoop.clustering.cluster.ClusterWritable;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, ClusterWritable> {
+public class CanopyCreateReducer extends Reducer<Text, CanopyWritable, Text, CanopyWritable> {
 
     private static final Text KEY = new Text("canopies");
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClusterCreateReducer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CanopyCreateReducer.class);
     public static final String COUNTER = "data";
     public static final String COUNTER_CANOPY = "canopies";
     public static final String COUNTER_REJECTED_CANOPY = "canopies.rejected";
@@ -37,7 +37,7 @@ public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, C
     }
 
     @Override
-    protected void reduce(Text key, Iterable<ClusterWritable> values, Context context)
+    protected void reduce(Text key, Iterable<CanopyWritable> values, Context context)
             throws IOException, InterruptedException {
 
         // Try to find a center that could minimize all data points
@@ -45,7 +45,7 @@ public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, C
 
         long obs = 0L;
         Cluster clusterTemplate = null;
-        for (ClusterWritable value : values) {
+        for (CanopyWritable value : values) {
             if(clusterTemplate == null){
                 clusterTemplate = value.get();
             } else {
@@ -71,7 +71,7 @@ public class ClusterCreateReducer extends Reducer<Text, ClusterWritable, Text, C
         nextCanopyId++;
         Cluster newCluster = new Canopy(nextCanopyId, clusterTemplate.getCenter(), clusterTemplate.getNum());
         context.getCounter(COUNTER, COUNTER_CANOPY).increment(1L);
-        context.write(KEY, new ClusterWritable(newCluster));
+        context.write(KEY, new CanopyWritable(newCluster));
 
     }
 
