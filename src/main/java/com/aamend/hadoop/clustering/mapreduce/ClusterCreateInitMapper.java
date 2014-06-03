@@ -48,18 +48,16 @@ public class ClusterCreateInitMapper extends
         for (Cluster canopy : canopies) {
             double dist = measure.distance(canopy.getCenter(), point);
             if (dist < t1) {
-                Cluster newCluster;
                 KEY.set(Arrays.toString(canopy.getCenter()));
                 if(dist < t2){
-                    newCluster = new Canopy(canopy.getId(), point);
                     LOGGER.debug("Adding (T2) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
                             Arrays.toString(canopy.getCenter()));
                 } else {
-                    newCluster = new Canopy(canopy.getId(), point, 0L);
+
                     LOGGER.debug("Adding (T1) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
                             Arrays.toString(canopy.getCenter()));
                 }
-                context.write(KEY, new ClusterWritable(newCluster));
+                context.write(KEY, new ClusterWritable(new Canopy(canopy.getId(), point)));
             }
             stronglyBound = stronglyBound || dist < t2;
         }
