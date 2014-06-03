@@ -1,6 +1,6 @@
 package com.aamend.hadoop.clustering.distance;
 
-import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
+import com.aamend.hadoop.clustering.cluster.Canopy;
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Test;
@@ -61,7 +61,7 @@ public class LevenshteinDistanceMeasureTest {
         LevenshteinDistanceMeasure measure = new
                 LevenshteinDistanceMeasure();
         Configuration conf = new Configuration();
-        conf.setFloat(CanopyConfigKeys.MAX_DISTANCE, 0.18f);
+        conf.setFloat(Canopy.MAX_DISTANCE, 0.18f);
         measure.configure(conf);
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

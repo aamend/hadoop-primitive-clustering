@@ -1,7 +1,6 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
-import com.aamend.hadoop.clustering.cluster.CanopyConfigKeys;
 import com.aamend.hadoop.clustering.cluster.Cluster;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
@@ -41,8 +40,8 @@ public class ClusterDataMapper extends
 
         // Configure distance measure
         Configuration conf = context.getConfiguration();
-        measure = CanopyConfigKeys.configureMeasure(conf);
-        minSimilarity = conf.getFloat(CanopyConfigKeys.MIN_SIMILARITY, 0.0f);
+        measure = Canopy.configureMeasure(conf);
+        minSimilarity = conf.getFloat(Canopy.MIN_SIMILARITY, 0.0f);
         clusters = Lists.newArrayList();
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
@@ -61,8 +60,7 @@ public class ClusterDataMapper extends
                 int i = 0;
                 while (reader.next(key, value)) {
                     i++;
-                    Cluster cluster = new Canopy((int[]) value.get(), i,
-                            measure);
+                    Cluster cluster = new Canopy(i, (int[]) value.get());
                     clusters.add(cluster);
                 }
 
@@ -70,10 +68,9 @@ public class ClusterDataMapper extends
             }
         }
 
-        if (clusters.size() == 0) {
+        if (clusters.size() == 0)
             throw new IOException(
                     "Could not find / load any canopy. Check distributed cache");
-        }
 
         LOGGER.info("Loaded {} clusters", clusters.size());
     }
@@ -86,7 +83,7 @@ public class ClusterDataMapper extends
         double[] pdf = new double[clusters.size()];
         for (int i = 0; i < clusters.size(); i++) {
             Cluster cluster = clusters.get(i);
-            pdf[i] = cluster.pdf(value);
+            pdf[i] = cluster.pdf((int[]) value.get(), measure);
         }
 
         // Get the cluster with smallest distance to that point
@@ -107,8 +104,8 @@ public class ClusterDataMapper extends
 
         // Point has been added to that cluster
         context.getCounter(COUNTER, COUNTER_CLUSTERED).increment(1L);
-        Canopy cluster = (Canopy) clusters.get(maxSimilarityId);
-        KEY.set(cluster.getIdentifier());
+        Cluster cluster = clusters.get(maxSimilarityId);
+        KEY.set(String.valueOf(cluster.getId()));
         context.write(KEY, value);
 
     }

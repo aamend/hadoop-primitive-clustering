@@ -1,14 +1,14 @@
 package com.aamend.hadoop.clustering.cluster;
 
-import com.aamend.hadoop.clustering.io.SequenceModel;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
+import com.aamend.hadoop.clustering.distance.DistanceMeasure;
+
+import java.util.List;
 
 /**
  * Author: antoine.amend@gmail.com
  * Date: 21/03/14
  */
-public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
+public interface Cluster {
 
     // default directory for all clustered points
     String CLUSTERED_POINTS_DIR = "clustered-points";
@@ -19,15 +19,18 @@ public interface Cluster extends SequenceModel<ArrayPrimitiveWritable> {
     // final directory for output of clusters per iteration
     String CLUSTERS_FINAL_DIR = "clusters-final";
 
+    double pdf(int[] x, DistanceMeasure measure);
+
+    void observe(long number);
+
+    void computeCenter(List<int[]> centers, DistanceMeasure measure);
 
     int getId();
 
     int[] getCenter();
 
-    long getObservations();
+    long getNum();
 
-    String asFormatString();
-
-    void configure(Configuration job);
+    String asFormattedString();
 
 }
