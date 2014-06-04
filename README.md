@@ -43,7 +43,7 @@ float min_dist  = Infinity
 For each point Pi
   For each point Pj
      Compute distance Pi->Pj
-     and update min_point if distance < min_dist
+     Update min_point if distance < min_dist
 
 Center = minimum
 ```
