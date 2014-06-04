@@ -12,20 +12,19 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormat;
 
 /**
- * Created by antoine on 05/05/14.
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
  */
 @RunWith(JUnit4.class)
 public class LevenshteinDistanceMeasureTest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger
-            (LevenshteinDistanceMeasureTest.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(LevenshteinDistanceMeasureTest.class);
     private DecimalFormat df = new DecimalFormat("###.##");
 
     @Test
     public void testDistance() {
 
-        LevenshteinDistanceMeasure measure = new
-                LevenshteinDistanceMeasure();
+        LevenshteinDistanceMeasure measure = new LevenshteinDistanceMeasure();
         measure.configure(new Configuration());
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -58,8 +57,7 @@ public class LevenshteinDistanceMeasureTest {
     @Test
     public void testDistanceThreshold() {
 
-        LevenshteinDistanceMeasure measure = new
-                LevenshteinDistanceMeasure();
+        LevenshteinDistanceMeasure measure = new LevenshteinDistanceMeasure();
         Configuration conf = new Configuration();
         conf.setFloat(Canopy.MAX_DISTANCE, 0.18f);
         measure.configure(conf);

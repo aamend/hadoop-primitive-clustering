@@ -10,20 +10,19 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormat;
 
 /**
- * Created by antoine on 05/05/14.
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
  */
 @RunWith(JUnit4.class)
 public class TanimotoDistanceMeasureTest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger
-            (TanimotoDistanceMeasureTest.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(TanimotoDistanceMeasureTest.class);
     private DecimalFormat df = new DecimalFormat("###.##");
 
     @Test
     public void testDistance() {
 
-        TanimotoDistanceMeasure measure = new
-                TanimotoDistanceMeasure();
+        TanimotoDistanceMeasure measure = new TanimotoDistanceMeasure();
 
         int[] seq1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         int[] seq2 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

@@ -33,11 +33,9 @@ import java.util.Scanner;
 @RunWith(JUnit4.class)
 public class CanopyCreateTest {
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(CanopyCreateTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CanopyCreateTest.class);
 
-    private
-    MapReduceDriver<WritableComparable, ArrayPrimitiveWritable, Text, CanopyWritable, Text, CanopyWritable>
+    private MapReduceDriver<WritableComparable, ArrayPrimitiveWritable, Text, CanopyWritable, Text, CanopyWritable>
             mapReduceDriver;
     private DistanceMeasure measure;
 
@@ -58,19 +56,16 @@ public class CanopyCreateTest {
     public void createCanopies() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(Canopy.CLUSTER_MEASURE,
-                measure.getClass().getName());
+        conf.set(Canopy.CLUSTER_MEASURE, measure.getClass().getName());
         conf.setFloat(Canopy.CLUSTER_T1, 0.1f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.08f);
 
-        List<Pair<Text, CanopyWritable>> results =
-                mapReduceDriver.run();
+        List<Pair<Text, CanopyWritable>> results = mapReduceDriver.run();
         for (Pair<Text, CanopyWritable> result : results) {
             Cluster ap = result.getSecond().get();
             LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
-        Assert.assertEquals("8 clusters should have been created", 8,
-                results.size());
+        Assert.assertEquals("8 clusters should have been created", 8, results.size());
         LOGGER.info("{} clusters have been created", results.size());
     }
 
@@ -78,19 +73,16 @@ public class CanopyCreateTest {
     public void createCanopiesLargerT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(Canopy.CLUSTER_MEASURE,
-                measure.getClass().getName());
+        conf.set(Canopy.CLUSTER_MEASURE, measure.getClass().getName());
         conf.setFloat(Canopy.CLUSTER_T1, 0.25f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.15f);
 
-        List<Pair<Text, CanopyWritable>> results =
-                mapReduceDriver.run();
+        List<Pair<Text, CanopyWritable>> results = mapReduceDriver.run();
         for (Pair<Text, CanopyWritable> result : results) {
             Cluster ap = result.getSecond().get();
             LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
-        Assert.assertEquals("4 clusters should have been created", 4,
-                results.size());
+        Assert.assertEquals("4 clusters should have been created", 4, results.size());
         LOGGER.info("{} clusters have been created", results.size());
     }
 
@@ -98,29 +90,24 @@ public class CanopyCreateTest {
     public void createCanopiesLargestT1T2() throws IOException {
 
         Configuration conf = mapReduceDriver.getConfiguration();
-        conf.set(Canopy.CLUSTER_MEASURE,
-                measure.getClass().getName());
+        conf.set(Canopy.CLUSTER_MEASURE, measure.getClass().getName());
         conf.setFloat(Canopy.CLUSTER_T1, 1.0f);
         conf.setFloat(Canopy.CLUSTER_T2, 0.95f);
 
-        List<Pair<Text, CanopyWritable>> results =
-                mapReduceDriver.run();
+        List<Pair<Text, CanopyWritable>> results = mapReduceDriver.run();
         for (Pair<Text, CanopyWritable> result : results) {
             Cluster ap = result.getSecond().get();
             LOGGER.info("Cluster : {}", ap.asFormattedString());
         }
-        Assert.assertEquals("1 clusters should have been created", 1,
-                results.size());
+        Assert.assertEquals("1 clusters should have been created", 1, results.size());
         LOGGER.info("{} clusters have been created", results.size());
     }
 
     private List<Pair<WritableComparable, ArrayPrimitiveWritable>> getInputList()
-            throws
-            FileNotFoundException {
+            throws FileNotFoundException {
 
         List<Pair<WritableComparable, ArrayPrimitiveWritable>>
-                inputList =
-                new ArrayList<Pair<WritableComparable, ArrayPrimitiveWritable>>();
+                inputList = new ArrayList<Pair<WritableComparable, ArrayPrimitiveWritable>>();
         String inputUrl = getClass().getResource("canopies.input").getFile();
         File inputFile = new File(inputUrl);
         Scanner in = new Scanner(inputFile);
