@@ -36,6 +36,17 @@ V'={0:(23+123)/2, 1:(55+23)/2, 2:(141+55)/2, 3:(22+141)/2, 4:(0+22)/1}
 ```
 - I had to find a way to override Mahout cluster's center computation. Instead of computing an average of data points, I find the point Pi that minimizes the distance across all cluster's data points. 
 
+Pseudo code:
+```
+Point min_point = undef
+float min_dist  = Infinity
+For each point Pi
+  For each point Pj
+     Compute distance Pi->Pj and update min_point if ditance < min_dist
+
+Center = minimum
+```
+
 Distance Measures
 ----
 
