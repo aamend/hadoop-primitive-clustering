@@ -81,7 +81,7 @@ Usage
 
 ### Create canopies
 
-Use *buildClusters* static method from *CanopyDriver* class
+Use *buildClusters* static method from *com.aamend.hadoop.clustering.job.CanopyDriver* class
 
 ```
      /**
@@ -109,7 +109,7 @@ The **output** will be a sequenceFile format using Cluster Id as key (*IntWritab
 
 ### Cluster input data
 
-Once canopies are created, use static *clusterData* method from *CanopyDriver* class
+Once canopies are created, use static *clusterData* method from *com.aamend.hadoop.clustering.job.CanopyDriver* class
 
 ```
      /**
