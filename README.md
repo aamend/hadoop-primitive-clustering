@@ -1,7 +1,7 @@
-Hadoop Primitive Clustering
+Hadoop Primitive Array Clustering
 ==============
 
-Mahout implementation of Levenshtein distance algorithm and other non-mathematical distance measures.
+Hadoop implementation of Canopy Clustering using Levenshtein distance algorithm and other non-mathematical distance measures (such as Jaccard coefficient).
 
 Difference with Mahout
 ----
