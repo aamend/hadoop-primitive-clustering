@@ -15,6 +15,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
+/**
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
+ */
 public class CanopyCreateMapper extends Mapper<Text, CanopyWritable, Text, CanopyWritable> {
 
     private float t1;

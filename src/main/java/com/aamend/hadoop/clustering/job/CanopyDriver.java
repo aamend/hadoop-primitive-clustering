@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.UUID;
 
+/**
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
+ */
 public class CanopyDriver {
 
     private static final Logger LOGGER =

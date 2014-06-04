@@ -17,6 +17,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
+/**
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
+ */
 public class CanopyCreateInitMapper extends
         Mapper<WritableComparable, ArrayPrimitiveWritable, Text, CanopyWritable> {
 

@@ -19,7 +19,8 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * Created by antoine on 12/05/14.
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
  */
 public class ClusterDataMapper extends
         Mapper<WritableComparable, ArrayPrimitiveWritable, IntWritable, ObjectWritable> {

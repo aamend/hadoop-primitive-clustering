@@ -7,7 +7,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 import java.io.IOException;
 
 /**
- * Created by antoine on 12/05/14.
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
  */
 public class ClusterDataReducer extends Reducer<IntWritable, ObjectWritable, IntWritable, ObjectWritable> {
 

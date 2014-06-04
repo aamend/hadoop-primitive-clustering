@@ -9,6 +9,10 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
+ */
 public class CanopyWritable implements Writable {
 
     private int id;

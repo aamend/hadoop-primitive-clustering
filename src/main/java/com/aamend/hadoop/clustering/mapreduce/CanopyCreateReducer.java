@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Author: antoine.amend@gmail.com
+ * Date: 21/03/14
+ */
 public class CanopyCreateReducer extends Reducer<Text, CanopyWritable, Text, CanopyWritable> {
 
     private static final Text KEY = new Text("canopies");
