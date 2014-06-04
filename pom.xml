@@ -5,12 +5,20 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <groupId>com.aamend.hadoop</groupId>
     <artifactId>hadoop-primitive-clustering</artifactId>
     <name>Hadoop Primitive Clustering</name>
     <description>
         Custom implementation of Mahout clustering.
-        Uses primitive arrays instead of Vectors
+        Uses primitive arrays instead of Vectors and allows custom distance measure such
+        as Levenshtein measure or Jaccard Coefficient. Only support array of Integer in
+        version 1.0
     </description>
     <version>1.0-SNAPSHOT</version>
 
@@ -177,13 +185,13 @@
 
     <scm>
         <connection>
-            scm:git:git@github.com:aamend/hadoop-clustering-array.git
+            scm:git:git@github.com:aamend/hadoop-primitive-clustering.git
         </connection>
-        <url>https://github.com/aamend/hadoop-clustering-array</url>
+        <url>git@github.com:aamend/hadoop-primitive-clustering.git</url>
         <developerConnection>
-            scm:git:git@github.com:aamend/hadoop-clustering-array.git
+            scm:git:git@github.com:aamend/hadoop-primitive-clustering.git
         </developerConnection>
-        <tag>hadoop-cluster-sequence-1.0</tag>
+        <tag>hadoop-primitive-clustering-1.0</tag>
     </scm>
 
     <distributionManagement>
