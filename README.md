@@ -38,11 +38,12 @@ V'={0:(23+123)/2, 1:(55+23)/2, 2:(141+55)/2, 3:(22+141)/2, 4:(0+22)/1}
 
 Pseudo code:
 ```
-Point min_point = undef
+Point min_point = Pi
 float min_dist  = Infinity
 For each point Pi
   For each point Pj
-     Compute distance Pi->Pj and update min_point if ditance < min_dist
+     Compute distance Pi->Pj
+     and update min_point if distance < min_dist
 
 Center = minimum
 ```
