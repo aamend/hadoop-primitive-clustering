@@ -194,21 +194,4 @@
         <tag>hadoop-primitive-clustering-1.0</tag>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>artifactory.dev.tagman.com</id>
-            <name>artifactory.dev.tagman.com-snapshots</name>
-            <url>
-                http://artifactory.dev.tagman.com:8081/artifactory/libs-snapshot-local
-            </url>
-        </snapshotRepository>
-        <repository>
-            <id>artifactory.dev.tagman.com</id>
-            <name>artifactory.dev.tagman.com-releases</name>
-            <url>
-                http://artifactory.dev.tagman.com:8081/artifactory/libs-release-local
-            </url>
-        </repository>
-    </distributionManagement>
-
 </project>
