@@ -41,7 +41,8 @@ public class CanopyCreateInitMapper extends
     }
 
     @Override
-    protected void map(WritableComparable key, ArrayPrimitiveWritable value, Context context) throws IOException, InterruptedException {
+    protected void map(WritableComparable key, ArrayPrimitiveWritable value, Context context)
+            throws IOException, InterruptedException {
 
         int[] point = (int[]) value.get();
         boolean stronglyBound = false;
@@ -50,7 +51,7 @@ public class CanopyCreateInitMapper extends
             if (dist < t1) {
                 KEY.set(Arrays.toString(canopy.getCenter()));
                 Cluster newCluster;
-                if(dist < t2){
+                if (dist < t2) {
                     newCluster = new Canopy(canopy.getId(), point, 1L);
                     LOGGER.debug("Adding (T2) {} to Cluster center {}", Arrays.toString((int[]) value.get()),
                             Arrays.toString(canopy.getCenter()));

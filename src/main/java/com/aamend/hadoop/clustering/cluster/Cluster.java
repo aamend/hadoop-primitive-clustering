@@ -10,14 +10,8 @@ import java.util.List;
  */
 public interface Cluster {
 
-    // default directory for all clustered points
-    String CLUSTERED_POINTS_DIR = "clustered-points";
-
     // default directory for output of clusters per iteration
     String CLUSTERS_TMP_DIR = "clusters-tmp-";
-
-    // final directory for output of clusters per iteration
-    String CLUSTERS_FINAL_DIR = "clusters-final";
 
     double pdf(int[] x, DistanceMeasure measure);
 

@@ -1,30 +1,23 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.ObjectWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Created by antoine on 12/05/14.
  */
-public class ClusterDataReducer extends
-        Reducer<Text, ArrayPrimitiveWritable, Text, Text> {
-
-    private static final Text VALUE = new Text();
+public class ClusterDataReducer extends Reducer<IntWritable, ObjectWritable, IntWritable, ObjectWritable> {
 
     @Override
-    protected void reduce(Text key,
-                          Iterable<ArrayPrimitiveWritable> values,
-                          Context context)
+    protected void reduce(IntWritable key, Iterable<ObjectWritable> values, Context context)
             throws IOException, InterruptedException {
 
-        // Used to group all data belonging to a same cluster
-        for (ArrayPrimitiveWritable value : values) {
-            VALUE.set(Arrays.toString((int[]) value.get()));
-            context.write(key, VALUE);
+        // Reducer used only to group all data belonging to a same cluster
+        for (ObjectWritable value : values) {
+            context.write(key, value);
         }
     }
 }

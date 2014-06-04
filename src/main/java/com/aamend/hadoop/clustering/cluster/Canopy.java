@@ -51,7 +51,7 @@ public class Canopy implements Cluster {
     @Override
     public void computeCenter(List<int[]> centers, DistanceMeasure measure) {
 
-        if(centers.size() <= 1){
+        if (centers.size() <= 1) {
             return;
         }
 

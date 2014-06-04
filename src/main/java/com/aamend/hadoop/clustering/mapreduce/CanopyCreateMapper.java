@@ -48,7 +48,7 @@ public class CanopyCreateMapper extends Mapper<Text, CanopyWritable, Text, Canop
             if (dist < t1) {
                 KEY.set(Arrays.toString(canopy.getCenter()));
                 Cluster newCluster;
-                if(dist < t2){
+                if (dist < t2) {
                     newCluster = new Canopy(canopy.getId(), point, value.get().getNum());
                     LOGGER.debug("Adding (T2) {} to Cluster {}", Arrays.toString(point),
                             Arrays.toString(canopy.getCenter()));

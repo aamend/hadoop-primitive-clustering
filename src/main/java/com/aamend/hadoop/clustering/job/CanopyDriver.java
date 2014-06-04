@@ -11,7 +11,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.io.ArrayPrimitiveWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.ObjectWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.UUID;
 
 public class CanopyDriver {
 
@@ -28,13 +30,38 @@ public class CanopyDriver {
             LoggerFactory.getLogger(CanopyDriver.class);
 
     /**
-     * Build a directory of Canopy clusters from the input arguments.
-     * Create clusters using several Map-Reduce jobs (at least 2). At each
-     * iteration, the number of reducers is 2 times smaller (until reached 1)
-     * while {T1,T2} parameters gets slightly larger (starts with half of the
-     * required size)
+     * Build a directory of Canopies from the input arguments.
+     * Create clusters using several Map-Reduce jobs (at least 2 - driven by
+     * the initial number of reducers). At each iteration, the number of
+     * reducers is 2 times smaller (until reached 1) while {T1,T2} parameters
+     * gets slightly larger (starts with half of the required size).
+     * Note the extensive use of /tmp directory at each iteration.
+     * Clustering algorithm is defined according to the supplied DistanceMeasure
+     * (can be a custom measure implementing DistanceMeasure assuming it is available
+     * on Hadoop classpath). At final step, canopies with less than CF observations will be rejected.
+     * <p/>
+     * - MAP_1    :     Read initial arrays and cluster them.
+     * Output cluster's centers as array
+     * <p/>
+     * - REDUCE_1 :     Recompute cluster's center by minimizing distance.
+     * Output cluster's centers as array
+     * <p/>
+     * - ../..
+     * <p/>
+     * - MAP_N    :     Read cluster's centers arrays and re-cluster them.
+     * Output cluster's centers as array
+     * <p/>
+     * - REDUCE_N :     Recompute cluster's center by minimizing distance.
+     * Output cluster's centers as array
+     * <p/>
+     * <p/>
+     * - Input should be of <key>WritableComparable</key> and <value>ArrayPrimitiveWritable</value>
+     * - Input should be of <format>SequenceFile</format>
+     * <p/>
+     * - Output will be of <key>Text (dummy)</key> and <value>CanopyWritable</value>
+     * - Output will be of <format>SequenceFile</format>
      *
-     * @param conf     the Configuration
+     * @param conf     the Hadoop Configuration
      * @param input    the Path containing input arrays
      * @param output   the final Path where clusters / data will be written to
      * @param reducers the number of reducers to use (at least 1)
@@ -42,7 +69,7 @@ public class CanopyDriver {
      * @param t1       the double CLUSTER_T1 distance metric
      * @param t2       the double CLUSTER_T2 distance metric
      * @param cf       the minimum observations per cluster
-     * @return the number of created clusters
+     * @return the number of created canopies
      */
     public static long buildClusters(Configuration conf, Path input,
                                      Path output, int reducers,
@@ -54,15 +81,14 @@ public class CanopyDriver {
         FileSystem fileSystem = FileSystem.get(conf);
 
         // Compute number of required iterations
-        if (reducers < 1)
-            throw new IllegalArgumentException(
-                    "Number of reducers must be greater or equals to 1");
+        if (reducers < 1) {
+            throw new IllegalArgumentException("Number of reducers must be greater or equals to 1");
+        }
 
         double num = Math.floor(Math.log(reducers) / Math.log(2)) + 1;
         int itTotal = (int) num;
         int it = 0;
         long canopies = 0;
-        long rejectedCanopies = 0;
 
         // Compute how {T1,T2} will be increased after each iteration
         float minT1 = t1 * 0.5f;
@@ -73,38 +99,21 @@ public class CanopyDriver {
         float itT2 = minT2;
 
         // Prepare input, output and temporary path
-        Path finPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
-        Path itOPath = new Path(output, Cluster.CLUSTERS_TMP_DIR + it);
+        Path tmp = new Path("/tmp/CLUSTERING-" + UUID.randomUUID().toString().toUpperCase());
+        Path itOPath = new Path(tmp, Cluster.CLUSTERS_TMP_DIR + it);
         Path itIPath = input;
 
         // Make sure output path does not exist
-        if (fileSystem.exists(output))
+        if (fileSystem.exists(output)) {
             throw new IOException("Output path " + output + " already exists");
+        }
 
-        /**
-         * =============================
-         * FIRST SET OF MAP-REDUCE JOBS
-         * =============================
-         *
-         * - MAP_1    :     Read initial arrays and cluster them.
-         *                  Output cluster's centers as array
-         *
-         * - REDUCE_1 :     Recompute cluster's center by minimizing distance.
-         *                  Output cluster's centers as array
-         *
-         * - ../..
-         *
-         * - MAP_N    :     Read cluster's centers arrays and re-cluster them.
-         *                  Output cluster's centers as array
-         *
-         * - REDUCE_N :     Recompute cluster's center by minimizing distance.
-         *                  Output cluster's centers as array
-         *
-         * After each iteration, the number of reducers is 2 times smaller
-         * (until reached 1) while {T1,T2} parameters gets slightly larger
-         * (starts with half of the required size)
-         */
+        // Make sure tmp path exists
+        if (fileSystem.exists(tmp)) {
+            fileSystem.mkdirs(tmp);
+        }
 
+        // Start job iteration
         while (reducers >= 1) {
 
             it++;
@@ -119,8 +128,9 @@ public class CanopyDriver {
             conf.setBoolean(Canopy.LAST_ITERATION, lastIteration);
             conf.setLong(Canopy.MIN_OBSERVATIONS, cf);
 
-            if(lastIteration){
-                itOPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
+            // Write last iteration to final directory
+            if (lastIteration) {
+                itOPath = output;
             }
 
             String name = "Create clusters - " + it + "/" + itTotal;
@@ -137,7 +147,7 @@ public class CanopyDriver {
 
             // Prepare job
             Job createJob = new Job(conf, name);
-            if(it == 1){
+            if (it == 1) {
                 createJob.setMapperClass(CanopyCreateInitMapper.class);
             } else {
                 createJob.setMapperClass(CanopyCreateMapper.class);
@@ -156,27 +166,22 @@ public class CanopyDriver {
             SequenceFileOutputFormat.setOutputPath(createJob, itOPath);
 
             // Submit job
-            if (!createJob.waitForCompletion(true))
-                throw new IOException(
-                        "MapReduce execution failed, please check " +
-                                createJob.getTrackingURL());
+            if (!createJob.waitForCompletion(true)) {
+                throw new IOException("MapReduce execution failed, please check " + createJob.getTrackingURL());
+            }
 
             // Retrieve counters
             canopies = createJob.getCounters().findCounter(
                     CanopyCreateReducer.COUNTER,
                     CanopyCreateReducer.COUNTER_CANOPY).getValue();
 
-            // Retrieve counters
-            rejectedCanopies = createJob.getCounters().findCounter(
-                    CanopyCreateReducer.COUNTER,
-                    CanopyCreateReducer.COUNTER_REJECTED_CANOPY).getValue();
-
             // Make sure we have at least one canopy created
             if (canopies == 0) {
-                LOGGER.error(
-                        "Could not build any canopy. " +
-                                "Please check your input arrays " +
-                                "and / or your {T1,T2} parameters");
+                LOGGER.error("Could not build any canopy. " +
+                        "Please check your input arrays and / or your {T1,T2} parameters");
+                if (fileSystem.exists(tmp)) {
+                    fileSystem.delete(tmp, true);
+                }
                 return 0;
             }
 
@@ -189,19 +194,21 @@ public class CanopyDriver {
 
             // Output of previous job will be input as next one
             itIPath = itOPath;
-            itOPath = new Path(output, Cluster.CLUSTERS_TMP_DIR + it);
+            itOPath = new Path(tmp, Cluster.CLUSTERS_TMP_DIR + it);
+        }
+
+        // Delete temporary directory
+        if (fileSystem.exists(tmp)) {
+            fileSystem.delete(tmp, true);
         }
 
         // Make sure we have at least one canopy created
         if (canopies == 0) {
-            LOGGER.error(
-                    "Could not build any canopy. " +
-                            "Please check your input arrays " +
-                            "and / or your {T1,T2} parameters");
+            LOGGER.error("Could not build any canopy. " +
+                    "Please check your input arrays and / or your {T1,T2} parameters");
             return 0;
         } else {
-            LOGGER.info("{} canopies available on {}. " +
-                    rejectedCanopies + " canopies rejected", canopies, finPath);
+            LOGGER.info("{} canopies available on {}", canopies, output);
         }
 
         return canopies;
@@ -211,37 +218,43 @@ public class CanopyDriver {
     /**
      * Retrieve the most probable cluster a point should belongs to.
      * If not 100% identical to cluster's center, cluster data if and only if
-     * his similarity to cluster's center is greater than X%
+     * his similarity to cluster's center is greater than X%. Canopies (created
+     * at previous steps) are added to Distributed cache. The output Key will be
+     * the ID of the cluster a point belongs to, and value will be the original Key
+     * of the cluster (can be any class WritableComparable).
+     * <p/>
+     * - Input should be of <key>WritableComparable</key> and <value>ArrayPrimitiveWritable</value>
+     * - Input should be of <format>SequenceFile</format>
+     * <p/>
+     * - Output will be of <key>IntWritable</key> and <value>ObjectWritable</value>
+     * - Output will be of <format>SequenceFile</format>
      *
      * @param conf          the Configuration
-     * @param input         the Path containing input arrays
-     * @param output        the final Path where clusters / data will be written to
+     * @param inputData     the Path containing input arrays
+     * @param dataPath      the final Path where data will be written to
+     * @param clusterPath   the path where clusters have been written
      * @param measure       the DistanceMeasure
      * @param minSimilarity the minimum similarity to cluster data
      * @param reducers      the number of reducers to use (at least 1)
      */
-    public static void clusterData(Configuration conf, Path input,
-                                   Path output,
+    public static void clusterData(Configuration conf, Path inputData,
+                                   Path dataPath, Path clusterPath,
                                    DistanceMeasure measure,
                                    float minSimilarity, int reducers)
             throws IOException, ClassNotFoundException, InterruptedException {
 
         // Retrieve cluster information
         FileSystem fileSystem = FileSystem.get(conf);
-        Path dataPath = new Path(output, Cluster.CLUSTERED_POINTS_DIR);
-        Path clusterPath = new Path(output, Cluster.CLUSTERS_FINAL_DIR);
 
-        // Make sure cluster directory exist
-        if (!fileSystem.exists(clusterPath))
-            throw new IOException(
-                    "Clusters directory [" + clusterPath +
-                            "] does not exist");
+        // Make sure cluster directory exists
+        if (!fileSystem.exists(clusterPath)) {
+            throw new IOException("Clusters directory [" + clusterPath + "] does not exist");
+        }
 
         // Make sure data directory does not exist
-        if (fileSystem.exists(dataPath))
-            throw new IOException(
-                    "Data directory [" + clusterPath +
-                            "] already exists");
+        if (fileSystem.exists(dataPath)) {
+            throw new IOException("Data directory [" + dataPath + "] already exists");
+        }
 
         // Retrieve cluster's files (in theory only one)
         FileStatus[] fss = fileSystem.listStatus(clusterPath, new PathFilter() {
@@ -252,21 +265,21 @@ public class CanopyDriver {
             }
         });
 
-        if (fss.length == 0)
-            throw new IOException(
-                    "Clusters sequence file(s) do not exist in directory [" +
-                            clusterPath + "]");
+        if (fss.length == 0) {
+            throw new IOException("Clusters sequence file(s) do not exist in directory [" + clusterPath + "]");
+        }
 
         String name = "Clustering data - 1/1";
         LOGGER.info("************************************");
         LOGGER.info("Job      : {}", name);
         LOGGER.info("Reducers : {}", reducers);
-        LOGGER.info("Input    : {}", input.toString());
+        LOGGER.info("Input    : {}", inputData.toString());
         LOGGER.info("Output   : {}", dataPath.toString());
         LOGGER.info("MinSim.  : {}", minSimilarity);
         LOGGER.info("MaxDis.  : {}", minSimilarity);
 
         // Add each cluster file to distributed cache
+        conf.set(ClusterDataMapper.CLUSTERS_FINAL_DIR_CONF, clusterPath.toString());
         for (FileStatus fs : fss) {
             LOGGER.info("Cache    : {}", fs.getPath());
             DistributedCache.addCacheFile(fs.getPath().toUri(), conf);
@@ -286,45 +299,30 @@ public class CanopyDriver {
         clusterJob.setReducerClass(ClusterDataReducer.class);
         clusterJob.setJarByClass(CanopyDriver.class);
         clusterJob.setNumReduceTasks(reducers);
-        clusterJob.setMapOutputKeyClass(Text.class);
-        clusterJob.setMapOutputValueClass(ArrayPrimitiveWritable.class);
-        clusterJob.setOutputKeyClass(Text.class);
-        clusterJob.setOutputValueClass(ArrayPrimitiveWritable.class);
+        clusterJob.setMapOutputKeyClass(IntWritable.class);
+        clusterJob.setMapOutputValueClass(ObjectWritable.class);
+        clusterJob.setOutputKeyClass(IntWritable.class);
+        clusterJob.setOutputValueClass(ObjectWritable.class);
         clusterJob.setInputFormatClass(SequenceFileInputFormat.class);
         clusterJob.setOutputFormatClass(SequenceFileOutputFormat.class);
-        SequenceFileInputFormat.addInputPath(clusterJob, input);
+        SequenceFileInputFormat.addInputPath(clusterJob, inputData);
         SequenceFileOutputFormat.setOutputPath(clusterJob, dataPath);
 
         // Submit job
-        if (!clusterJob.waitForCompletion(true))
-            throw new IOException(
-                    "MapReduce execution failed, please check " +
-                            clusterJob.getTrackingURL());
+        if (!clusterJob.waitForCompletion(true)) {
+            throw new IOException("MapReduce execution failed, please check " + clusterJob.getTrackingURL());
+        }
 
         // Retrieve counters
         long clusteredPoints = clusterJob.getCounters().findCounter(
                 ClusterDataMapper.COUNTER,
                 ClusterDataMapper.COUNTER_CLUSTERED).getValue();
 
-        // Retrieve counters
-        long nonClusteredPoints = clusterJob.getCounters().findCounter(
-                ClusterDataMapper.COUNTER,
-                ClusterDataMapper.COUNTER_NON_CLUSTERED).getValue();
-
-        if (nonClusteredPoints > 0)
-            LOGGER.warn("{} points could not have been clustered",
-                    nonClusteredPoints);
-
         // Make sure we have at least one point clustered
         if (clusteredPoints == 0) {
-            LOGGER.error(
-                    "Could not cluster any data. " +
-                            "Please check both your input arrays " +
-                            "and clusters' centers");
+            LOGGER.error("Could not cluster any data. Please check both your input arrays and clusters' centers");
         } else {
-            LOGGER.info(
-                    "{} points have been clustered - Data available on {}",
-                    clusteredPoints, dataPath);
+            LOGGER.info("{} points have been clustered - Data available on {}", clusteredPoints, dataPath);
         }
     }
 

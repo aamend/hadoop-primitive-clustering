@@ -1,6 +1,7 @@
 package com.aamend.hadoop.clustering.mapreduce;
 
 import com.aamend.hadoop.clustering.cluster.Canopy;
+import com.aamend.hadoop.clustering.cluster.CanopyWritable;
 import com.aamend.hadoop.clustering.cluster.Cluster;
 import com.aamend.hadoop.clustering.distance.DistanceMeasure;
 import com.google.common.collect.Lists;
@@ -21,12 +22,13 @@ import java.util.List;
  * Created by antoine on 12/05/14.
  */
 public class ClusterDataMapper extends
-        Mapper<Text, ArrayPrimitiveWritable, Text, ArrayPrimitiveWritable> {
+        Mapper<WritableComparable, ArrayPrimitiveWritable, IntWritable, ObjectWritable> {
 
-    private static final Text KEY = new Text();
+    private static final IntWritable KEY = new IntWritable();
     public static final String COUNTER = "data";
     public static final String COUNTER_CLUSTERED = "clustered.points";
     public static final String COUNTER_NON_CLUSTERED = "non.clustered.points";
+    public static final String CLUSTERS_FINAL_DIR_CONF = "cluster.final.dir_conf";
 
     private List<Cluster> clusters;
     private static final Logger LOGGER =
@@ -46,21 +48,21 @@ public class ClusterDataMapper extends
 
         for (URI uri : DistributedCache.getCacheFiles(conf)) {
 
-            if (uri.getPath().contains(Cluster.CLUSTERS_FINAL_DIR)) {
+            if (uri.getPath().contains(conf.get(ClusterDataMapper.CLUSTERS_FINAL_DIR_CONF))) {
                 LOGGER.info("Loading file [{}] from distributed cache", uri);
                 // Read canopies
                 SequenceFile.Reader reader = new SequenceFile.Reader(conf,
                         SequenceFile.Reader.file(new Path(uri)));
                 WritableComparable key = (WritableComparable) ReflectionUtils
                         .newInstance(reader.getKeyClass(), conf);
-                ArrayPrimitiveWritable value =
-                        (ArrayPrimitiveWritable) ReflectionUtils
+                CanopyWritable value =
+                        (CanopyWritable) ReflectionUtils
                                 .newInstance(reader.getValueClass(), conf);
 
                 int i = 0;
                 while (reader.next(key, value)) {
                     i++;
-                    Cluster cluster = new Canopy(i, (int[]) value.get());
+                    Cluster cluster = value.get();
                     clusters.add(cluster);
                 }
 
@@ -68,15 +70,16 @@ public class ClusterDataMapper extends
             }
         }
 
-        if (clusters.size() == 0)
+        if (clusters.size() == 0) {
             throw new IOException(
                     "Could not find / load any canopy. Check distributed cache");
+        }
 
         LOGGER.info("Loaded {} clusters", clusters.size());
     }
 
     @Override
-    protected void map(Text key, ArrayPrimitiveWritable value, Context context)
+    protected void map(WritableComparable key, ArrayPrimitiveWritable value, Context context)
             throws IOException, InterruptedException {
 
         // Get distance from that point to any cluster center
@@ -105,8 +108,9 @@ public class ClusterDataMapper extends
         // Point has been added to that cluster
         context.getCounter(COUNTER, COUNTER_CLUSTERED).increment(1L);
         Cluster cluster = clusters.get(maxSimilarityId);
-        KEY.set(String.valueOf(cluster.getId()));
-        context.write(KEY, value);
+
+        KEY.set(cluster.getId());
+        context.write(KEY, new ObjectWritable(key));
 
     }
 }

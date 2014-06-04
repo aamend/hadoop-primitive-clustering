@@ -46,7 +46,7 @@ public class CanopyCreateReducer extends Reducer<Text, CanopyWritable, Text, Can
         long obs = 0L;
         Cluster clusterTemplate = null;
         for (CanopyWritable value : values) {
-            if(clusterTemplate == null){
+            if (clusterTemplate == null) {
                 clusterTemplate = value.get();
             } else {
                 obs += value.get().getNum();
@@ -57,8 +57,8 @@ public class CanopyCreateReducer extends Reducer<Text, CanopyWritable, Text, Can
         // Increment number of observations for this cluster
         clusterTemplate.observe(obs);
 
-        if(lastIteration){
-            if(clusterTemplate.getNum() < minObservations){
+        if (lastIteration) {
+            if (clusterTemplate.getNum() < minObservations) {
                 context.getCounter(COUNTER, COUNTER_REJECTED_CANOPY).increment(1L);
                 return;
             }
