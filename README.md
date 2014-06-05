@@ -1,7 +1,7 @@
-Hadoop Primitive Clustering
+Hadoop Primitive Array Clustering
 ==============
 
-Mahout implementation of Levenshtein distance algorithm and other non-mathematical distance measures.
+Hadoop implementation of Canopy Clustering using Levenshtein distance algorithm and other non-mathematical distance measures (such as Jaccard coefficient).
 
 Difference with Mahout
 ----
@@ -26,7 +26,7 @@ I had to create canopies for sequences of IDs (Integer). Let's take the followin
 V1={0:123, 1:23, 2:55,  3:141, 4:22}
 V2={0:23,  1:55, 2:141, 3:22}
 ```
-These vectors are totally different using most of standard Mathematical measures Mahout provides (e.g. *Euclidean*). I can still change the way my vectors are created, but none of the solution I tried were considering my arrays as a **sequence of IDs** and furthermore **where the order matters**. *Levensthein* metric (that is usually used for fuzzy string matching) is a perfect match as it compares sequences of IDs and not only IDs as numbers. 
+These vectors are totally different using most of standard Mathematical measures Mahout provides (e.g. *Euclidean*). I can still change the way my vectors are created, but none of the solution I tried were considering my arrays as a **sequence of IDs** and furthermore a sequence of IDs **where the order matters**. *Levensthein* metric (that is usually used for fuzzy string matching) is a perfect match as it compares sequences of IDs and not only IDs as numbers. 
 
 - I had to create a new set of *DistanceMeasure* taking arrays as Input parameters.
 
@@ -35,6 +35,18 @@ Besides, assuming both of them belongs to a same cluster, does a new cluster's c
 V'={0:(23+123)/2, 1:(55+23)/2, 2:(141+55)/2, 3:(22+141)/2, 4:(0+22)/1}
 ```
 - I had to find a way to override Mahout cluster's center computation. Instead of computing an average of data points, I find the point Pi that minimizes the distance across all cluster's data points. 
+
+Pseudo code:
+```
+Point min_point = Pi
+float min_dist  = Infinity
+For each point Pi
+  For each point Pj
+     Compute distance Pi->Pj
+     Update min_point if distance < min_dist
+
+Center = minimum
+```
 
 Distance Measures
 ----
@@ -69,7 +81,7 @@ Usage
 
 ### Create canopies
 
-Use *buildClusters* static method from *CanopyDriver* class
+Use *buildClusters* static method from *com.aamend.hadoop.clustering.job.CanopyDriver* class
 
 ```
      /**
@@ -97,7 +109,7 @@ The **output** will be a sequenceFile format using Cluster Id as key (*IntWritab
 
 ### Cluster input data
 
-Once canopies are created, use static *clusterData* method from *CanopyDriver* class
+Once canopies are created, use static *clusterData* method from *com.aamend.hadoop.clustering.job.CanopyDriver* class
 
 ```
      /**
