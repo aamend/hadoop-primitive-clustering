@@ -28,7 +28,7 @@ V2={0:23,  1:55, 2:141, 3:22}
 ```
 These vectors are totally different using most of standard Mathematical measures Mahout provides (e.g. *Euclidean*). I can still change the way my vectors are created, but none of the solution I tried were considering my arrays as a **sequence of IDs** and furthermore **where the order matters**. *Levensthein* metric (that is usually used for fuzzy string matching) is a perfect match as it compares sequences of IDs and not only IDs as numbers. 
 
-- I add to create a new set of *DistanceMeasure* taking arrays as Input parameters.
+- I had to create a new set of *DistanceMeasure* taking arrays as Input parameters.
 
 Besides, assuming both of them belongs to a same cluster, does a new cluster's center V' (made as an average of points in both V1 and V2) makes sense for sequence analysis ? 
 ```
@@ -53,7 +53,7 @@ Only **Integer.class** is supported on Version 1.0. It is planned however to sup
 Dependencies
 ----
 
-Even though the project has been directly inspired by Mahout canopy clustering, it does not depend on any of Mahout libraries. Instead of using Mahout *Vector*, I use arrays of Integer, and instead of Mahout *VectorWritable*, I use Hadoop *ArrayPrimitiveWritable*. Simply add the maven dependency to your project. Releases versions should be available on Maven Central (synched from Sonatype). Even though this project (actively depends on Hadoop libraries) has been built around Hadoop CDH4 distribution, this can be easily overridden on client side by using maven <exclusion> tag in order to use any of the Hadoop versions / distributions.
+Even though the project has been directly inspired by Mahout canopy clustering, it does not depend on any of Mahout libraries. Instead of using Mahout *Vector*, I use arrays of Integer, and instead of Mahout *VectorWritable*, I use Hadoop *ArrayPrimitiveWritable*. Simply add the maven dependency to your project. Releases versions should be available on Maven Central (synched from Sonatype). Even though this project (actively depends on Hadoop libraries) has been built around Hadoop CDH4 distribution, this can be easily overridden on client side by using maven "exclusion" tag in order to use any of the Hadoop versions / distributions.
 
 ```
     <dependency>

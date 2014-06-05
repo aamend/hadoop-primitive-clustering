@@ -70,8 +70,8 @@ public class CanopyDriver {
      * @param output   the final Path where clusters / data will be written to
      * @param reducers the number of reducers to use (at least 1)
      * @param measure  the DistanceMeasure
-     * @param t1       the double CLUSTER_T1 distance metric
-     * @param t2       the double CLUSTER_T2 distance metric
+     * @param t1       the float CLUSTER_T1 distance metric
+     * @param t2       the float CLUSTER_T2 distance metric
      * @param cf       the minimum observations per cluster
      * @return the number of created canopies
      */
@@ -225,7 +225,7 @@ public class CanopyDriver {
      * his similarity to cluster's center is greater than X%. Canopies (created
      * at previous steps) are added to Distributed cache. The output Key will be
      * the ID of the cluster a point belongs to, and value will be the original Key
-     * of the cluster (can be any class WritableComparable).
+     * of the data point (can be any class WritableComparable).
      * <p/>
      * - Input should be of <key>WritableComparable</key> and <value>ArrayPrimitiveWritable</value>
      * - Input should be of <format>SequenceFile</format>
