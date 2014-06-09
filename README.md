@@ -6,7 +6,7 @@ Hadoop implementation of Canopy Clustering using Levenshtein distance algorithm 
 Difference with Mahout
 ----
 
-One of the major limitation of Mahout is that the clustering algorithms (K-Means or Canopy clustering) use a mathematical approach in order to compute Clusters' centers. Each time a new point is added to a cluster, Mahout framework recomputes cluster's center as an average of data points.
+One of the major limitation of Mahout is that the clustering algorithms (K-Means or Canopy clustering) uses a mathematical approach in order to compute Clusters' centers. Each time a new point is added to a cluster, Mahout framework recomputes cluster's center as an average of data points.
 
 ```
 NewCenter[i] = Sum(Vectors)[i] / observations
