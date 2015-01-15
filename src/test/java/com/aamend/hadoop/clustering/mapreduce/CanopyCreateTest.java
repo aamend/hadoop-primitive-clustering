@@ -26,10 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Author: antoine.amend@tagman.com
- * Date: 13/12/13
- */
 @RunWith(JUnit4.class)
 public class CanopyCreateTest {
 
