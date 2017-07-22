@@ -1,18 +1,18 @@
 Hadoop Primitive Array Clustering
 ==============
 
-Hadoop implementation of Canopy Clustering using Levenshtein distance algorithm and other non-mathematical distance measures (such as Jaccard coefficient).
+Hadoop implementation of Canopy Clustering using Levenshtein distance algorithm.
 
 Difference with Mahout
 ----
 
-One of the major limitation of Mahout is that the clustering algorithms (K-Means or Canopy clustering) uses a mathematical approach in order to compute Clusters' centers. Each time a new point is added to a cluster, Mahout framework recomputes cluster's center as an average of data points.
+One of the major limitation of Mahout is that the clustering algorithms (K-Means or Canopy clustering) uses a euclidean distance in order to compute Clusters' centers. Each time a new point is added to a cluster, Mahout framework recomputes cluster's center as an average of data points.
 
 ```
 NewCenter[i] = Sum(Vectors)[i] / observations
 ```
 
-As a result, only purely mathematical *DistanceMeasure* can be used. But...
+But...
 - What if your data set is composed of non-mathematical primitive data points (**char**, **boolean**) ?
 - What if an average of points does not make any sense for your business ? 
 - Or simply what if you wish to use a non (or less) mathematical distance measure ? 
@@ -26,7 +26,8 @@ I had to create canopies for sequences of IDs (Integer). Let's take the followin
 V1={0:123, 1:23, 2:55,  3:141, 4:22}
 V2={0:23,  1:55, 2:141, 3:22}
 ```
-These vectors are totally different using most of standard Mathematical measures Mahout provides (e.g. *Euclidean*). I can still change the way my vectors are created, but none of the solution I tried were considering my arrays as a **sequence of IDs** and furthermore a sequence of IDs **where the order matters**. *Levensthein* metric (that is usually used for fuzzy string matching) is a perfect match as it compares sequences of IDs and not only IDs as numbers. 
+
+These vectors are totally different using most of standard distance measures Mahout provides (e.g. *Euclidean*). I can still change the way my vectors are created, but none of the solution I tried were considering my arrays as a **sequence of IDs** and furthermore a sequence of IDs **where the order matters**. *Levensthein* metric (that is usually used for fuzzy string matching) is a perfect match as it compares sequences of IDs and not only IDs as numbers. 
 
 - I had to create a new set of *DistanceMeasure* taking arrays as Input parameters.
 
